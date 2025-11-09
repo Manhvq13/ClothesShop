@@ -44,7 +44,6 @@ public class AdminProductActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
 
-        // KIỂM TRA QUYỀN ADMIN (DỰA TRÊN ROLE LƯU CỤC BỘ)
         if (!sessionManager.isAdmin()) {
             Toast.makeText(this, "Bạn không có quyền chỉnh sửa sản phẩm.", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(this, MainActivity.class);
