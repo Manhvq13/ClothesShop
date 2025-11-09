@@ -21,6 +21,8 @@ import com.example.clothesshopproject.utils.SessionManager;
 import com.example.clothesshopproject.MainActivity;
 
 import java.math.BigDecimal;
+import java.util.Collections; // Cần import này để tạo danh sách ảnh
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,6 +31,10 @@ import retrofit2.Response;
 public class AdminProductActivity extends AppCompatActivity {
 
     private EditText etSku, etName, etPrice, etSalePrice;
+    private EditText etDescription, etShortDescription;
+    // BỔ SUNG: EditText cho hình ảnh
+    private EditText etImageUrl, etImageAltText;
+
     private CheckBox cbIsActive;
     private Button btnSave;
     private TextView tvTitle;
@@ -72,10 +78,18 @@ public class AdminProductActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        // Giả định ID từ layout activity_admin_product.xml
         tvTitle = findViewById(R.id.tv_admin_product_title);
         etSku = findViewById(R.id.et_product_sku);
         etName = findViewById(R.id.et_product_name);
+
+        // Khởi tạo View cho Description
+        etDescription = findViewById(R.id.et_product_description);
+        etShortDescription = findViewById(R.id.et_product_short_description);
+
+        // BỔ SUNG: Khởi tạo View cho hình ảnh
+        etImageUrl = findViewById(R.id.et_image_url);
+        etImageAltText = findViewById(R.id.et_image_alt_text);
+
         etPrice = findViewById(R.id.et_product_price);
         etSalePrice = findViewById(R.id.et_product_sale_price);
         cbIsActive = findViewById(R.id.cb_product_is_active);
@@ -108,6 +122,25 @@ public class AdminProductActivity extends AppCompatActivity {
     private void populateFields(AdminProduct product) {
         etSku.setText(product.getSku());
         etName.setText(product.getName());
+
+        // Đổ dữ liệu Description
+        if (product.getDescription() != null) {
+            etDescription.setText(product.getDescription());
+        }
+        if (product.getShortDescription() != null) {
+            etShortDescription.setText(product.getShortDescription());
+        }
+
+        // BỔ SUNG: Đổ dữ liệu ảnh (Chỉ lấy ảnh đầu tiên)
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            AdminProduct.ProductImage firstImage = product.getImages().get(0);
+            etImageUrl.setText(firstImage.getUrl());
+            // Kiểm tra và đổ dữ liệu Alt Text
+            if (firstImage.getAltText() != null) {
+                etImageAltText.setText(firstImage.getAltText());
+            }
+        }
+
         etPrice.setText(product.getPrice().toPlainString());
         if (product.getSalePrice() != null) {
             etSalePrice.setText(product.getSalePrice().toPlainString());
@@ -118,12 +151,26 @@ public class AdminProductActivity extends AppCompatActivity {
     private void validateAndSaveProduct() {
         String sku = etSku.getText().toString().trim();
         String name = etName.getText().toString().trim();
+        String description = etDescription.getText().toString().trim();
+        String shortDescription = etShortDescription.getText().toString().trim();
+
+        // BỔ SUNG: Lấy dữ liệu hình ảnh
+        String imageUrl = etImageUrl.getText().toString().trim();
+        String imageAltText = etImageAltText.getText().toString().trim();
+
         String priceStr = etPrice.getText().toString().trim();
         String salePriceStr = etSalePrice.getText().toString().trim();
         boolean isActive = cbIsActive.isChecked();
 
-        if (sku.isEmpty() || name.isEmpty() || priceStr.isEmpty()) {
-            Toast.makeText(this, "Vui lòng điền đủ SKU, Tên và Giá.", Toast.LENGTH_SHORT).show();
+        // Kiểm tra tính hợp lệ cơ bản
+        if (sku.isEmpty() || name.isEmpty() || priceStr.isEmpty() || description.isEmpty() || imageUrl.isEmpty()) {
+            Toast.makeText(this, "Vui lòng điền đủ SKU, Tên, Giá, Mô tả và URL Ảnh.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Kiểm tra Short Description không quá 512 ký tự (theo DB schema)
+        if (shortDescription.length() > 512) {
+            Toast.makeText(this, "Mô tả ngắn không được vượt quá 512 ký tự.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -135,8 +182,16 @@ public class AdminProductActivity extends AppCompatActivity {
             if (productId != -1L) {
                 productToSave.setId(productId);
             }
+
             productToSave.setSku(sku);
             productToSave.setName(name);
+            productToSave.setDescription(description);
+            productToSave.setShortDescription(shortDescription);
+
+            // BỔ SUNG: Gán hình ảnh (tạo danh sách chỉ chứa 1 ảnh)
+            AdminProduct.ProductImage newImage = new AdminProduct.ProductImage(imageUrl, imageAltText);
+            productToSave.setImages(Collections.singletonList(newImage));
+
             productToSave.setPrice(price);
             productToSave.setSalePrice(salePrice);
             productToSave.setActive(isActive);

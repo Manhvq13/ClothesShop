@@ -20,6 +20,14 @@
             android:textStyle="bold"
             android:layout_marginBottom="20dp"/>
 
+        <CheckBox
+            android:id="@+id/cb_product_is_active"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sản phẩm đang hoạt động"
+            android:checked="true"
+            android:layout_marginBottom="24dp"/>
+
         <EditText
             android:id="@+id/et_product_sku"
             android:layout_width="match_parent"
@@ -37,6 +45,42 @@
             android:inputType="textCapSentences" />
 
         <EditText
+            android:id="@+id/et_image_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="URL Ảnh chính (Bắt buộc)"
+            android:layout_marginBottom="12dp"
+            android:inputType="textUri" />
+
+        <EditText
+            android:id="@+id/et_image_alt_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Mô tả Alt Text cho ảnh"
+            android:layout_marginBottom="12dp"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/et_product_short_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Mô tả ngắn (tóm tắt)"
+            android:lines="2"
+            android:maxLines="3"
+            android:layout_marginBottom="12dp"
+            android:inputType="textMultiLine" />
+
+        <EditText
+            android:id="@+id/et_product_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Mô tả chi tiết sản phẩm (Nội dung đầy đủ)"
+            android:lines="5"
+            android:gravity="top"
+            android:layout_marginBottom="16dp"
+            android:inputType="textMultiLine" />
+
+        <EditText
             android:id="@+id/et_product_price"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -49,16 +93,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Giá khuyến mãi"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="24dp"
             android:inputType="numberDecimal" />
 
-        <CheckBox
-            android:id="@+id/cb_product_is_active"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sản phẩm đang hoạt động"
-            android:checked="true"
-            android:layout_marginBottom="24dp"/>
 
         <Button
             android:id="@+id/btn_save_product"
