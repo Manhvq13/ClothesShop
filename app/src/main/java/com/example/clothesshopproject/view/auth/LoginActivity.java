@@ -12,9 +12,11 @@ import com.example.clothesshopproject.model.AuthRequest;
 import com.example.clothesshopproject.model.AuthResponse;
 import com.example.clothesshopproject.view.profile.UserProfileActivity;
 import com.example.clothesshopproject.utils.SessionManager;
+import com.example.clothesshopproject.view.admin.AdminDashboardActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
 public class LoginActivity extends AppCompatActivity {
     private EditText edtEmail, edtPassword;
     private ApiService apiService;
@@ -54,12 +56,24 @@ public class LoginActivity extends AppCompatActivity {
             public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse auth = response.body();
+
                     sessionManager.saveSession(auth.getToken(),
                             auth.getUser().getEmail(),
                             auth.getUser().getFullName());
 
+                    String roleName = (auth.getUser() != null && auth.getUser().getRole() != null)
+                            ? auth.getUser().getRole().getName()
+                            : "USER";
+                    sessionManager.saveUserRole(roleName);
+
                     Toast.makeText(LoginActivity.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(LoginActivity.this, UserProfileActivity.class));
+
+                    if (sessionManager.isAdmin()) {
+                        startActivity(new Intent(LoginActivity.this, AdminDashboardActivity.class));
+                    } else {
+                        startActivity(new Intent(LoginActivity.this, UserProfileActivity.class));
+                    }
+
                     finish();
                 } else {
                     Toast.makeText(LoginActivity.this, "Sai tài khoản hoặc mật khẩu", Toast.LENGTH_SHORT).show();

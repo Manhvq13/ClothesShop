@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.clothesshopproject.R; // Đảm bảo R.layout.activity_admin_user_list tồn tại
+import com.example.clothesshopproject.R;
 import com.example.clothesshopproject.api.ApiClient;
 import com.example.clothesshopproject.api.admin.AdminApiService;
 import com.example.clothesshopproject.model.User;
@@ -31,19 +31,21 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_admin_user_list); // Cần tạo file layout này
+        setContentView(R.layout.activity_admin_user_list);
 
         recyclerView = findViewById(R.id.recycler_view_users);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        adminApiService = ApiClient.getRetrofitInstance().create(AdminApiService.class);
+        // ĐÃ SỬA: Thay thế getRetrofitInstance() bằng getClient(this)
+        adminApiService = ApiClient.getClient(this).create(AdminApiService.class);
         sessionManager = new SessionManager(this);
 
         fetchUsers();
     }
 
     private void fetchUsers() {
-        String token = "Bearer " + sessionManager.getAuthToken();
+        // ĐÃ SỬA: Thay thế getAuthToken() bằng getToken()
+        String token = "Bearer " + sessionManager.getToken();
 
         adminApiService.getAllUsers(token).enqueue(new Callback<List<User>>() {
             @Override
@@ -69,7 +71,8 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
 
     @Override
     public void onRoleUpdate(User user, String newRoleName) {
-        String token = "Bearer " + sessionManager.getAuthToken();
+        // ĐÃ SỬA: Thay thế getAuthToken() bằng getToken()
+        String token = "Bearer " + sessionManager.getToken();
         UserUpdateRoleRequest request = new UserUpdateRoleRequest(newRoleName);
 
         adminApiService.updateRole(token, user.getId(), request).enqueue(new Callback<User>() {
@@ -93,7 +96,8 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
 
     @Override
     public void onStatusUpdate(User user, boolean newStatus) {
-        String token = "Bearer " + sessionManager.getAuthToken();
+        // ĐÃ SỬA: Thay thế getAuthToken() bằng getToken()
+        String token = "Bearer " + sessionManager.getToken();
         UserUpdateStatusRequest request = new UserUpdateStatusRequest(newStatus);
 
         adminApiService.updateStatus(token, user.getId(), request).enqueue(new Callback<User>() {

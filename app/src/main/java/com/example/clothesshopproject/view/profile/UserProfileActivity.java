@@ -62,7 +62,7 @@ public class UserProfileActivity extends AppCompatActivity {
                     tvName.setText(user.getFullName());
                     tvEmail.setText(user.getEmail());
                     tvPhone.setText(user.getPhone() != null ? user.getPhone() : "Chưa cập nhật");
-                    tvAddress.setText(user.getAddress() != null ? user.getAddress() : "Chưa cập nhật");
+//                    tvAddress.setText(user.getAddress() != null ? user.getAddress() : "Chưa cập nhật");
                 } else {
                     Toast.makeText(UserProfileActivity.this,
                             "Không tải được thông tin", Toast.LENGTH_SHORT).show();
