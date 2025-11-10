@@ -1,6 +1,5 @@
 package com.example.clothesshopproject.api.admin;
 
-import com.example.clothesshopproject.utils.SessionManager; // Cần import SessionManager nếu muốn truyền vào
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

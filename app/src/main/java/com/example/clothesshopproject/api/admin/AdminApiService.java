@@ -7,6 +7,7 @@ import com.example.clothesshopproject.model.admin.ProductImageResponse;
 import com.example.clothesshopproject.model.admin.StockResponse;
 import com.example.clothesshopproject.model.admin.StockUpdateRequest;
 import com.example.clothesshopproject.model.admin.UserResponse;
+import com.example.clothesshopproject.model.admin.UserUpdateRequest;
 import com.example.clothesshopproject.model.admin.UserUpdateRoleRequest;
 import com.example.clothesshopproject.model.admin.UserUpdateStatusRequest;
 
@@ -90,5 +91,10 @@ public interface AdminApiService {
     Call<ProductImageResponse> uploadProductImage(
             @Path("productId") Long productId,
             @Part MultipartBody.Part file
+    );
+    @PUT("api/v1/admin/users/{userId}")
+    Call<UserResponse> updateUserDetails(
+            @Path("userId") Long userId,
+            @Body UserUpdateRequest request
     );
 }

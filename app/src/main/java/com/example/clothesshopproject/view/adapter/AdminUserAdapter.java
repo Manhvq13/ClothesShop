@@ -1,6 +1,7 @@
 package com.example.clothesshopproject.view.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,33 +15,29 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.clothesshopproject.R;
-// Đã loại bỏ import AdminApiClient, AdminApiService, UserUpdateRoleRequest, UserUpdateStatusRequest
 import com.example.clothesshopproject.model.admin.UserResponse;
 import com.example.clothesshopproject.utils.SessionManager;
+import com.example.clothesshopproject.view.admin.AdminEditUserActivity;
 
 import java.util.List;
-// Đã loại bỏ các import Retrofit không cần thiết
 
 public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.UserViewHolder> {
 
     private final Context context;
     private final List<UserResponse> userList;
-    // Đã loại bỏ: private final AdminApiService adminApiService;
     private final SessionManager sessionManager;
-    private final UserActionListener listener; // Thêm trường Listener
+    private final UserActionListener listener;
 
     public interface UserActionListener {
         void onRoleUpdate(UserResponse user, String newRoleName);
         void onStatusUpdate(UserResponse user, boolean newStatus);
     }
 
-    // 2. CẬP NHẬT CONSTRUCTOR để nhận Listener
     public AdminUserAdapter(Context context, List<UserResponse> userList, UserActionListener listener) {
         this.context = context;
         this.userList = userList;
         this.sessionManager = new SessionManager(context);
-        this.listener = listener; // Gán Listener
-        // Đã loại bỏ logic khởi tạo AdminApiService
+        this.listener = listener;
     }
 
     @NonNull
@@ -68,25 +65,48 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
         // Nút Cập nhật Trạng thái (Status)
         holder.btnToggleStatus.setText(isActive ? "Deactivate" : "Activate");
 
-        // KIỂM TRA: Không cho phép tự vô hiệu hóa tài khoản đang đăng nhập
-        if (sessionManager.getEmail() != null && sessionManager.getEmail().equals(user.getEmail())) {
+        // --- KIỂM TRA TÀI KHOẢN HIỆN TẠI ---
+        boolean isCurrentUser = sessionManager.getEmail() != null && sessionManager.getEmail().equals(user.getEmail());
+
+        if (isCurrentUser) {
+            // Vô hiệu hóa Toggle Status
             holder.btnToggleStatus.setEnabled(false);
             holder.btnToggleStatus.setAlpha(0.5f);
-            holder.btnToggleStatus.setText(isActive ? "Current User" : "Activate (Self)");
+            holder.btnToggleStatus.setText("Current User");
+
+            // Vô hiệu hóa Update Role (Theo logic BE)
+            holder.btnUpdateRole.setEnabled(false);
+            holder.btnUpdateRole.setAlpha(0.5f);
+            holder.btnUpdateRole.setText("Current Role");
+            holder.btnUpdateRole.setOnClickListener(null);
         } else {
+            // Logic cho các user khác
             holder.btnToggleStatus.setEnabled(true);
             holder.btnToggleStatus.setAlpha(1.0f);
+            holder.btnToggleStatus.setText(isActive ? "Deactivate" : "Activate");
 
-            // 3. GỌI LISTENER (Status)
+            holder.btnUpdateRole.setEnabled(true);
+            holder.btnUpdateRole.setAlpha(1.0f);
+            holder.btnUpdateRole.setText("Update Role");
+
+            // GỌI LISTENER (Status)
             holder.btnToggleStatus.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onStatusUpdate(user, !isActive);
                 }
             });
+            // GỌI LISTENER (Role)
+            holder.btnUpdateRole.setOnClickListener(v -> showRoleUpdateDialog(user, roleName));
         }
 
-        // 3. GỌI LISTENER (Role)
-        holder.btnUpdateRole.setOnClickListener(v -> showRoleUpdateDialog(user, roleName));
+        // --- LOGIC NÚT EDIT DETAILS ---
+        holder.btnEditDetails.setOnClickListener(v -> {
+            Intent intent = new Intent(context, AdminEditUserActivity.class);
+            intent.putExtra("USER_ID", user.getId());
+            intent.putExtra("FULL_NAME", user.getFullName());
+            intent.putExtra("PHONE", user.getPhone());
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -94,9 +114,6 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
         return userList.size();
     }
 
-    // Đã loại bỏ các phương thức toggleUserStatus và updateUserRole (logic API)
-
-    // Phương thức hiển thị Dialog cập nhật Role (gọi Listener)
     private void showRoleUpdateDialog(UserResponse user, String currentRole) {
         final String[] roles = {"USER", "ADMIN"};
 
@@ -105,7 +122,6 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
         builder.setItems(roles, (dialog, which) -> {
             String newRoleName = roles[which];
             if (!newRoleName.equals(currentRole)) {
-                // GỌI LISTENER
                 if (listener != null) {
                     listener.onRoleUpdate(user, newRoleName);
                 }
@@ -124,6 +140,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
         final TextView tvStatus;
         final Button btnToggleStatus;
         final Button btnUpdateRole;
+        final Button btnEditDetails; // NEW BUTTON
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -134,6 +151,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
             tvStatus = itemView.findViewById(R.id.tv_user_status);
             btnToggleStatus = itemView.findViewById(R.id.btn_toggle_status);
             btnUpdateRole = itemView.findViewById(R.id.btn_update_role);
+            btnEditDetails = itemView.findViewById(R.id.btn_edit_details); // NEW BUTTON FINDING
         }
     }
 
