@@ -82,7 +82,7 @@ public interface AdminApiService {
             @Body UserUpdateStatusRequest request
     );
     @Multipart
-    @POST("admin/images/upload") // Endpoint chung cho upload ảnh
+    @POST("admin/images/upload")
     Call<ImageUploadResponse> uploadImage(@Part MultipartBody.Part file);
 
     // Endpoint dành riêng cho Product Image Upload (nếu cần)
@@ -92,7 +92,7 @@ public interface AdminApiService {
             @Path("productId") Long productId,
             @Part MultipartBody.Part file
     );
-    @PUT("api/v1/admin/users/{userId}")
+    @PUT("admin/users/{userId}")
     Call<UserResponse> updateUserDetails(
             @Path("userId") Long userId,
             @Body UserUpdateRequest request

@@ -38,23 +38,33 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         sessionManager = new SessionManager(this);
+        // Khởi tạo AdminApiService với token từ SessionManager
         adminApiService = AdminApiClient.getClient(sessionManager.getToken()).create(AdminApiService.class);
 
         adapter = new AdminUserAdapter(this, new java.util.ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
 
+        // Ban đầu không gọi fetchUsers() ở đây, mà để onResume() xử lý lần tải đầu tiên và các lần làm mới sau đó.
+        // fetchUsers();
+    }
+
+    /**
+     * Cập nhật: Phương thức này được gọi mỗi khi Activity hiển thị trở lại.
+     * Nó đảm bảo danh sách người dùng được tải lại sau khi chỉnh sửa
+     * (ví dụ: sau khi AdminEditUserActivity kết thúc).
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
         fetchUsers();
     }
 
     private void fetchUsers() {
-        // Gọi API mà không cần thêm "Bearer " vì đã được thêm trong AdminApiClient Interceptor
-        // Sửa lỗi: Gọi API getAllUsers() không truyền token
+        // Gọi API getAllUsers()
         adminApiService.getAllUsers().enqueue(new Callback<List<UserResponse>>() {
             @Override
-            // Sửa lỗi: Thay thế List<User> bằng List<UserResponse>
             public void onResponse(@NonNull Call<List<UserResponse>> call, @NonNull Response<List<UserResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // ĐÃ SỬA: Cập nhật adapter đã khởi tạo
                     if (adapter == null) {
                         adapter = new AdminUserAdapter(AdminUserListActivity.this, response.body(), AdminUserListActivity.this);
                         recyclerView.setAdapter(adapter);
@@ -78,18 +88,15 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
     // =========================================================
 
     @Override
-    // Sửa lỗi: Thay thế User bằng UserResponse
     public void onRoleUpdate(UserResponse user, String newRoleName) {
-        // Không cần thêm "Bearer " vào token vì AdminApiClient đã xử lý
         UserUpdateRoleRequest request = new UserUpdateRoleRequest(newRoleName);
 
-        // Sửa lỗi: Thay thế User bằng UserResponse
         adminApiService.updateRole(user.getId(), request).enqueue(new Callback<UserResponse>() {
             @Override
             public void onResponse(@NonNull Call<UserResponse> call, @NonNull Response<UserResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(AdminUserListActivity.this, "Cập nhật Role thành công!", Toast.LENGTH_SHORT).show();
-                    // Cập nhật lại list
+                    // Cập nhật lại list sau khi thành công
                     fetchUsers();
                 } else {
                     Toast.makeText(AdminUserListActivity.this, "Lỗi: " + (response.errorBody() != null ? response.message() : "Unknown Error"), Toast.LENGTH_SHORT).show();
@@ -104,17 +111,15 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
     }
 
     @Override
-    // Sửa lỗi: Thay thế User bằng UserResponse
     public void onStatusUpdate(UserResponse user, boolean newStatus) {
-        // Không cần thêm "Bearer " vào token vì AdminApiClient đã xử lý
         UserUpdateStatusRequest request = new UserUpdateStatusRequest(newStatus);
 
-        // Sửa lỗi: Thay thế User bằng UserResponse
         adminApiService.updateStatus(user.getId(), request).enqueue(new Callback<UserResponse>() {
             @Override
             public void onResponse(@NonNull Call<UserResponse> call, @NonNull Response<UserResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(AdminUserListActivity.this, "Cập nhật trạng thái thành công!", Toast.LENGTH_SHORT).show();
+                    // Cập nhật lại list sau khi thành công
                     fetchUsers();
                 } else {
                     Toast.makeText(AdminUserListActivity.this, "Lỗi: " + (response.errorBody() != null ? response.message() : "Unknown Error"), Toast.LENGTH_SHORT).show();

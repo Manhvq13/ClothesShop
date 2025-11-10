@@ -99,12 +99,22 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
             holder.btnUpdateRole.setOnClickListener(v -> showRoleUpdateDialog(user, roleName));
         }
 
-        // --- LOGIC NÚT EDIT DETAILS ---
+        // --- LOGIC NÚT EDIT DETAILS (ĐÃ SỬA LỖI THIẾU EMAIL VÀ KIỂM TRA ID) ---
         holder.btnEditDetails.setOnClickListener(v -> {
+
+            if (user.getId() == null) {
+                Toast.makeText(context, "Error: User ID is missing for this record.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             Intent intent = new Intent(context, AdminEditUserActivity.class);
+
             intent.putExtra("USER_ID", user.getId());
+            // ĐÃ KHẮC PHỤC LỖI THIẾU: Truyền Email cho màn hình chỉnh sửa
+            intent.putExtra("EMAIL", user.getEmail());
             intent.putExtra("FULL_NAME", user.getFullName());
             intent.putExtra("PHONE", user.getPhone());
+
             context.startActivity(intent);
         });
     }
@@ -140,7 +150,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
         final TextView tvStatus;
         final Button btnToggleStatus;
         final Button btnUpdateRole;
-        final Button btnEditDetails; // NEW BUTTON
+        final Button btnEditDetails;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -151,7 +161,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
             tvStatus = itemView.findViewById(R.id.tv_user_status);
             btnToggleStatus = itemView.findViewById(R.id.btn_toggle_status);
             btnUpdateRole = itemView.findViewById(R.id.btn_update_role);
-            btnEditDetails = itemView.findViewById(R.id.btn_edit_details); // NEW BUTTON FINDING
+            btnEditDetails = itemView.findViewById(R.id.btn_edit_details);
         }
     }
 

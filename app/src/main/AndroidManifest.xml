@@ -13,7 +13,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ClothesShopProject"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31"> <activity
+        android:name=".MainActivity"
+        android:exported="false" />
+
         <activity
             android:name=".view.auth.LoginActivity"
             android:exported="true">
@@ -31,6 +35,7 @@
         <activity
             android:name=".view.auth.ChangePasswordActivity"
             android:exported="false" />
+
         <activity
             android:name=".view.profile.UserProfileActivity"
             android:exported="false" />
@@ -38,19 +43,23 @@
         <activity
             android:name=".view.admin.AdminDashboardActivity"
             android:exported="false" />
+
         <activity
             android:name=".view.admin.AdminProductListActivity"
             android:exported="false" />
         <activity
             android:name=".view.admin.AdminProductActivity"
             android:exported="false" />
+
         <activity
             android:name=".view.admin.AdminUserListActivity"
             android:exported="false" />
-
         <activity
-            android:name=".MainActivity"
+            android:name=".view.admin.AdminEditUserActivity"
+            android:exported="false" /> <activity
+            android:name=".view.admin.AdminStockActivity"
             android:exported="false" />
+
     </application>
 
 </manifest>

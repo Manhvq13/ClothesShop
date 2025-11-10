@@ -53,6 +53,19 @@
             android:minHeight="48dp" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Avatar URL (Link ảnh)">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_avatar_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textUri"
+            android:minHeight="48dp" />
+    </com.google.android.material.textfield.TextInputLayout>
     <Button
         android:id="@+id/btn_save_details"
         android:layout_width="match_parent"

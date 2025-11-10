@@ -7,10 +7,12 @@ public class UserUpdateRequest {
     private String fullName;
     @SerializedName("phone")
     private String phone;
-
-    public UserUpdateRequest(String fullName, String phone) {
+    @SerializedName("avatar")
+    private String avatar;
+    public UserUpdateRequest(String fullName, String phone ,String avatar) {
         this.fullName = fullName;
         this.phone = phone;
+        this.avatar = avatar;
     }
 
     public String getFullName() {
@@ -20,4 +22,5 @@ public class UserUpdateRequest {
     public String getPhone() {
         return phone;
     }
+    public String getAvatar() { return avatar; }
 }
