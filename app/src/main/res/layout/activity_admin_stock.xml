@@ -8,43 +8,120 @@
     tools:context=".view.admin.AdminStockActivity">
 
     <TextView
-        android:id="@+id/tv_product_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Product Name: Loading..."
-        android:textSize="20sp"
+        android:text="Quản Lý Tồn Kho"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp" />
 
     <TextView
-        android:id="@+id/tv_quantity"
+        android:id="@+id/tv_stock_product_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Quantity: 0"
+        android:text="Sản phẩm: Tên sản phẩm"
         android:textSize="18sp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/tv_stock_product_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ID Sản phẩm: 39"
+        android:textSize="14sp"
+        android:layout_marginBottom="16dp" />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chi tiết tồn kho hiện tại"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="Tổng số lượng:"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:id="@+id/tv_current_quantity"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="0"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="Đã đặt trước (Reserved):"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:id="@+id/tv_current_reserved"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="0"
+                    android:textColor="#FF9800"
+                    android:textStyle="bold"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="Số lượng có sẵn:"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:id="@+id/tv_current_available"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="0"
+                    android:textColor="#4CAF50"
+                    android:textStyle="bold"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cập nhật tổng số lượng tồn kho (Quantity):"
         android:layout_marginBottom="8dp"/>
-
-    <TextView
-        android:id="@+id/tv_reserved"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Reserved: 0"
-        android:textSize="18sp"
-        android:layout_marginBottom="8dp"/>
-
-    <TextView
-        android:id="@+id/tv_available"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Available: 0"
-        android:textSize="18sp"
-        android:layout_marginBottom="24dp"/>
 
     <EditText
         android:id="@+id/et_new_quantity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="New Quantity"
+        android:hint="Nhập tổng số lượng mới"
         android:inputType="number"
         android:layout_marginBottom="16dp"/>
 
@@ -52,6 +129,15 @@
         android:id="@+id/btn_update_stock"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Update Stock"/>
+        android:text="Cập nhật tồn kho"
+        android:backgroundTint="#007BFF"/>
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone"
+        android:layout_marginTop="16dp"/>
 
 </LinearLayout>

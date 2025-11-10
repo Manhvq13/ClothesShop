@@ -60,12 +60,13 @@ public interface AdminApiService {
             @Body UserUpdateStatusRequest request
     );
 
-    @GET("admin/stock/{productId}")
+    @GET("api/v1/admin/stock/{productId}")
     Call<StockResponse> getStockByProductId(@Path("productId") Long productId);
 
-    @PUT("admin/stock/product/{productId}")
+    // ĐÃ SỬA: Thay thế Long productId bằng String token
+    @PUT("api/v1/admin/stock")
     Call<StockResponse> updateStockQuantity(
-            @Path("productId") Long productId,
+            @Header("Authorization") String token,
             @Body StockUpdateRequest request
     );
 
