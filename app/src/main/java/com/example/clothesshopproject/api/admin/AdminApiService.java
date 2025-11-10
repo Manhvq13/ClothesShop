@@ -61,9 +61,10 @@ public interface AdminApiService {
     );
 
     @GET("api/v1/admin/stock/{productId}")
-    Call<StockResponse> getStockByProductId(@Path("productId") Long productId);
-
-    // ĐÃ SỬA: Thay thế Long productId bằng String token
+    Call<StockResponse> getStockByProductId(
+            @Header("Authorization") String token,
+            @Path("productId") Long productId
+    );
     @PUT("api/v1/admin/stock")
     Call<StockResponse> updateStockQuantity(
             @Header("Authorization") String token,

@@ -17,6 +17,8 @@ import com.example.clothesshopproject.R;
 import com.example.clothesshopproject.api.ApiClient;
 import com.example.clothesshopproject.api.admin.AdminApiService;
 import com.example.clothesshopproject.model.admin.AdminProduct;
+import com.example.clothesshopproject.model.admin.StockResponse;
+import com.example.clothesshopproject.model.admin.StockUpdateRequest;
 import com.example.clothesshopproject.utils.SessionManager;
 import com.example.clothesshopproject.MainActivity;
 
@@ -32,8 +34,8 @@ public class AdminProductActivity extends AppCompatActivity {
 
     private EditText etSku, etName, etPrice, etSalePrice;
     private EditText etDescription, etShortDescription;
-    private EditText etImageUrl, etImageAltText; // BỔ SUNG: EditText cho hình ảnh
-
+    private EditText etImageUrl, etImageAltText;
+    private EditText etQuantity;
     private CheckBox cbIsActive;
     private Button btnSave;
     private TextView tvTitle;
@@ -42,6 +44,9 @@ public class AdminProductActivity extends AppCompatActivity {
     private Long productId = null;
     private AdminApiService adminApiService;
     private SessionManager sessionManager;
+
+    private Integer newQuantityForStock = null;
+    private Long savedProductId = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,12 +85,11 @@ public class AdminProductActivity extends AppCompatActivity {
         tvTitle = findViewById(R.id.tv_admin_product_title);
         etSku = findViewById(R.id.et_product_sku);
         etName = findViewById(R.id.et_product_name);
+        etQuantity = findViewById(R.id.et_inventory_quantity);
 
-        // Khởi tạo View cho Description
         etDescription = findViewById(R.id.et_product_description);
         etShortDescription = findViewById(R.id.et_product_short_description);
 
-        // Khởi tạo View cho hình ảnh
         etImageUrl = findViewById(R.id.et_image_url);
         etImageAltText = findViewById(R.id.et_image_alt_text);
 
@@ -122,6 +126,11 @@ public class AdminProductActivity extends AppCompatActivity {
         etSku.setText(product.getSku());
         etName.setText(product.getName());
 
+        // Đổ dữ liệu Tồn kho
+        if (product.getQuantityInStock() != null) {
+            etQuantity.setText(String.valueOf(product.getQuantityInStock()));
+        }
+
         // Đổ dữ liệu Description
         if (product.getDescription() != null) {
             etDescription.setText(product.getDescription());
@@ -153,21 +162,20 @@ public class AdminProductActivity extends AppCompatActivity {
         String description = etDescription.getText().toString().trim();
         String shortDescription = etShortDescription.getText().toString().trim();
 
-        // Lấy dữ liệu hình ảnh
         String imageUrl = etImageUrl.getText().toString().trim();
         String imageAltText = etImageAltText.getText().toString().trim();
+
+        String quantityStr = etQuantity.getText().toString().trim();
 
         String priceStr = etPrice.getText().toString().trim();
         String salePriceStr = etSalePrice.getText().toString().trim();
         boolean isActive = cbIsActive.isChecked();
 
-        // Kiểm tra tính hợp lệ cơ bản
-        if (sku.isEmpty() || name.isEmpty() || priceStr.isEmpty() || description.isEmpty() || imageUrl.isEmpty()) {
-            Toast.makeText(this, "Vui lòng điền đủ SKU, Tên, Giá, Mô tả và URL Ảnh.", Toast.LENGTH_SHORT).show();
+        if (sku.isEmpty() || name.isEmpty() || priceStr.isEmpty() || description.isEmpty() || imageUrl.isEmpty() || quantityStr.isEmpty()) {
+            Toast.makeText(this, "Vui lòng điền đủ SKU, Tên, Giá, Mô tả, URL Ảnh và Số lượng tồn kho.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Kiểm tra Short Description không quá 512 ký tự (theo DB schema)
         if (shortDescription.length() > 512) {
             Toast.makeText(this, "Mô tả ngắn không được vượt quá 512 ký tự.", Toast.LENGTH_SHORT).show();
             return;
@@ -176,6 +184,16 @@ public class AdminProductActivity extends AppCompatActivity {
         try {
             BigDecimal price = new BigDecimal(priceStr);
             BigDecimal salePrice = salePriceStr.isEmpty() ? null : new BigDecimal(salePriceStr);
+
+            Integer quantity = Integer.parseInt(quantityStr);
+
+            if (quantity < 0) {
+                Toast.makeText(this, "Số lượng tồn kho không hợp lệ (Không thể âm).", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            newQuantityForStock = quantity;
+            savedProductId = productId;
 
             AdminProduct productToSave = new AdminProduct();
             if (productId != -1L) {
@@ -187,7 +205,6 @@ public class AdminProductActivity extends AppCompatActivity {
             productToSave.setDescription(description);
             productToSave.setShortDescription(shortDescription);
 
-            // Gán hình ảnh (tạo danh sách chỉ chứa 1 ảnh)
             AdminProduct.ProductImage newImage = new AdminProduct.ProductImage(imageUrl, imageAltText);
             productToSave.setImages(Collections.singletonList(newImage));
 
@@ -198,7 +215,7 @@ public class AdminProductActivity extends AppCompatActivity {
             performSaveApiCall(productToSave);
 
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "Giá tiền không hợp lệ.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Giá tiền hoặc Số lượng tồn kho không hợp lệ.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -210,30 +227,41 @@ public class AdminProductActivity extends AppCompatActivity {
         Call<AdminProduct> call;
 
         if (productId != -1L) {
-            // UPDATE (PUT)
+            // BƯỚC 1A: UPDATE (PUT) thông tin sản phẩm
             call = adminApiService.updateProduct(token, productId, productToSave);
         } else {
-            // CREATE (POST)
+            // BƯỚC 1B: CREATE (POST) sản phẩm mới
             call = adminApiService.createProduct(token, productToSave);
         }
 
         call.enqueue(new Callback<AdminProduct>() {
             @Override
             public void onResponse(Call<AdminProduct> call, Response<AdminProduct> response) {
-                progressBar.setVisibility(View.GONE);
-                btnSave.setEnabled(true);
 
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null) {
+
                     String action = (productId != -1L) ? "cập nhật" : "tạo mới";
-                    Toast.makeText(AdminProductActivity.this, "Đã " + action + " sản phẩm thành công!", Toast.LENGTH_LONG).show();
+                    AdminProduct savedProduct = response.body();
 
-                    // Quay lại màn hình danh sách và refresh
-                    Intent intent = new Intent(AdminProductActivity.this, AdminProductListActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivity(intent);
-                    finish();
+                    // Lấy ID sản phẩm đã lưu (cần thiết cho thao tác CREATE)
+                    if (productId == -1L && savedProduct.getId() != null) {
+                        savedProductId = savedProduct.getId();
+                    }
+
+                    // --- BƯỚC 2: GỌI API CẬP NHẬT TỒN KHO ---
+                    if (savedProductId != null && newQuantityForStock != null) {
+                        performStockUpdate(savedProductId, newQuantityForStock, action);
+                    } else {
+                        // Nếu không tìm thấy ID hoặc Quantity bị null (lỗi logic)
+                        progressBar.setVisibility(View.GONE);
+                        btnSave.setEnabled(true);
+                        Toast.makeText(AdminProductActivity.this, "Đã " + action + " sản phẩm thành công (Lỗi cập nhật Tồn kho do thiếu ID).", Toast.LENGTH_LONG).show();
+                        navigateToProductList();
+                    }
 
                 } else {
+                    progressBar.setVisibility(View.GONE);
+                    btnSave.setEnabled(true);
                     String errorBody = "";
                     try {
                         if (response.errorBody() != null) {
@@ -243,7 +271,7 @@ public class AdminProductActivity extends AppCompatActivity {
                         Log.e("API_SAVE", "Error parsing error body: " + e.getMessage());
                     }
                     Log.e("API_SAVE", "Response Code: " + response.code() + ", Body: " + errorBody);
-                    Toast.makeText(AdminProductActivity.this, "Lỗi lưu: " + response.code() + (errorBody.isEmpty() ? "" : " (" + errorBody + ")"), Toast.LENGTH_LONG).show();
+                    Toast.makeText(AdminProductActivity.this, "Lỗi lưu Sản phẩm: " + response.code() + (errorBody.isEmpty() ? "" : " (" + errorBody + ")"), Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -252,11 +280,52 @@ public class AdminProductActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 btnSave.setEnabled(true);
 
-                // HIỂN THỊ LỖI KẾT NỐI CHI TIẾT
                 String errorMessage = "Lỗi kết nối: " + (t.getMessage() != null ? t.getMessage() : "Server không phản hồi.");
                 Log.e("API_FAILURE", "Save Failed: " + t.getMessage());
                 Toast.makeText(AdminProductActivity.this, errorMessage, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    // --- Thêm phương thức mới để gọi API cập nhật Stock ---
+    private void performStockUpdate(Long id, Integer quantity, String productAction) {
+        String token = "Bearer " + sessionManager.getToken();
+        StockUpdateRequest request = new StockUpdateRequest();
+        request.setProductId(id);
+        request.setQuantity(quantity);
+
+        adminApiService.updateStockQuantity(token, request).enqueue(new Callback<StockResponse>() {
+            @Override
+            public void onResponse(Call<StockResponse> call, Response<StockResponse> response) {
+                progressBar.setVisibility(View.GONE);
+                btnSave.setEnabled(true);
+
+                String actionMessage = productAction.substring(0, 1).toUpperCase() + productAction.substring(1);
+
+                if (response.isSuccessful()) {
+                    Toast.makeText(AdminProductActivity.this, actionMessage + " sản phẩm và Cập nhật Tồn kho thành công!", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(AdminProductActivity.this, actionMessage + " sản phẩm thành công, nhưng LỖI CẬP NHẬT TỒN KHO. Mã lỗi: " + response.code(), Toast.LENGTH_LONG).show();
+                }
+                navigateToProductList();
+            }
+
+            @Override
+            public void onFailure(Call<StockResponse> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                btnSave.setEnabled(true);
+                String actionMessage = productAction.substring(0, 1).toUpperCase() + productAction.substring(1);
+
+                Toast.makeText(AdminProductActivity.this, actionMessage + " sản phẩm thành công, nhưng LỖI KẾT NỐI KHI CẬP NHẬT TỒN KHO: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                navigateToProductList();
+            }
+        });
+    }
+
+    private void navigateToProductList() {
+        Intent intent = new Intent(AdminProductActivity.this, AdminProductListActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
     }
 }

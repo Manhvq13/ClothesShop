@@ -29,7 +29,7 @@ public class AdminStockActivity extends AppCompatActivity {
     private EditText etNewQuantity;
     private Button btnUpdateStock;
     private ProgressBar progressBar;
-
+    private Button btnBackToProducts;
     private Long productId;
     private AdminApiService adminApiService;
     private SessionManager sessionManager;
@@ -40,7 +40,6 @@ public class AdminStockActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_stock);
 
-        // Ánh xạ Views
         tvProductName = findViewById(R.id.tv_stock_product_name);
         tvProductId = findViewById(R.id.tv_stock_product_id);
         tvCurrentQuantity = findViewById(R.id.tv_current_quantity);
@@ -49,7 +48,7 @@ public class AdminStockActivity extends AppCompatActivity {
         etNewQuantity = findViewById(R.id.et_new_quantity);
         btnUpdateStock = findViewById(R.id.btn_update_stock);
         progressBar = findViewById(R.id.progress_bar);
-
+        btnBackToProducts = findViewById(R.id.btn_back_to_products);
         adminApiService = ApiClient.getClient(this).create(AdminApiService.class);
         sessionManager = new SessionManager(this);
 
@@ -65,13 +64,14 @@ public class AdminStockActivity extends AppCompatActivity {
         fetchStockDetails();
 
         btnUpdateStock.setOnClickListener(v -> updateStockQuantity());
+        btnBackToProducts.setOnClickListener(v -> finish());
     }
 
     private void fetchStockDetails() {
         progressBar.setVisibility(View.VISIBLE);
         String token = "Bearer " + sessionManager.getToken();
 
-        adminApiService.getStockByProductId(productId).enqueue(new Callback<StockResponse>() {
+        adminApiService.getStockByProductId(token, productId).enqueue(new Callback<StockResponse>() {
             @Override
             public void onResponse(Call<StockResponse> call, Response<StockResponse> response) {
                 progressBar.setVisibility(View.GONE);

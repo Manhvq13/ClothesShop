@@ -132,6 +132,13 @@
         android:text="Cập nhật tồn kho"
         android:backgroundTint="#007BFF"/>
 
+    <Button
+        android:id="@+id/btn_back_to_products"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Quay lại Quản lý Sản phẩm"
+        android:backgroundTint="@color/black"
+        android:layout_marginTop="8dp"/>
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
