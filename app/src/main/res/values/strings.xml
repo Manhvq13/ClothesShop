@@ -6,6 +6,11 @@
     <string name="select_category">Lọc theo Danh mục</string>
     <string name="sort_by">Sắp xếp theo</string>
 
+    <string-array name="sort_price_options">
+        <item>Giá Tăng Dần</item>
+        <item>Giá Giảm Dần</item>
+    </string-array>
+
     <string-array name="category_options">
         <item>Tất cả danh mục</item>
         <item>Áo Thun</item>

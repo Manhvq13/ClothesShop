@@ -26,7 +26,6 @@ import com.example.clothesshopproject.view.adapter.AdminProductAdapter;
 import com.example.clothesshopproject.MainActivity;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import retrofit2.Call;
@@ -51,8 +50,9 @@ public class AdminProductListActivity extends AppCompatActivity {
 
     // --- TRẠNG THÁI HIỆN TẠI CỦA FILTER VÀ PHÂN TRANG ---
     private String currentSearchName = "";
-    private Integer currentCategoryId = null; // null: không lọc
-    private String currentSortBy = "price";  // Mặc định sắp xếp theo giá
+    private Integer currentCategoryId = null;
+    // SỬA: Giá trị mặc định là field,direction (price,asc)
+    private String currentSortBy = "price,asc";
     private int currentPage = 0;
     private int totalPages = 0;
     private final int pageSize = 10;
@@ -62,7 +62,6 @@ public class AdminProductListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         sessionManager = new SessionManager(this);
 
         if (!sessionManager.isAdmin()) {
@@ -104,6 +103,38 @@ public class AdminProductListActivity extends AppCompatActivity {
         });
     }
 
+    // ... (setupSearchView và setupPaginationControls giữ nguyên) ...
+
+    private void setupSortSpinner() {
+        // Tùy chọn sẽ hiển thị trên UI (lấy từ strings.xml)
+        String[] sortOptionsDisplay = getResources().getStringArray(R.array.sort_price_options);
+
+        // Tùy chọn sẽ gửi lên API (field,direction)
+        String[] sortOptionsApi = {"price,asc", "price,desc"};
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, sortOptionsDisplay);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerSort.setAdapter(adapter);
+
+        // Đặt giá trị mặc định cho Spinner (Tăng dần)
+        spinnerSort.setSelection(0);
+
+        spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                currentSortBy = sortOptionsApi[position]; // Lấy giá trị API (price,asc hoặc price,desc)
+                currentPage = 0; // Reset trang
+                loadProducts(currentPage);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+    }
+
     private void setupSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -126,30 +157,6 @@ public class AdminProductListActivity extends AppCompatActivity {
         });
     }
 
-    private void setupSortSpinner() {
-        // Mặc định sắp xếp theo giá (price)
-        String[] sortOptions = {"price"};
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, sortOptions);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerSort.setAdapter(adapter);
-
-        spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                currentSortBy = sortOptions[position];
-                currentPage = 0;
-                loadProducts(currentPage);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
-        });
-    }
-
     private void setupPaginationControls() {
         btnPrevPage.setOnClickListener(v -> {
             if (currentPage > 0) {
@@ -164,10 +171,7 @@ public class AdminProductListActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Phương thức chính để gọi API tải danh sách sản phẩm với các tham số Filter/Search/Sort/Pagination
-     * @param page Số trang cần tải (bắt đầu từ 0)
-     */
+
     public void loadProducts(int page) {
         progressBar.setVisibility(View.VISIBLE);
         String token = sessionManager.getToken();
@@ -178,14 +182,13 @@ public class AdminProductListActivity extends AppCompatActivity {
             return;
         }
 
-        // Đảm bảo tham số 'name' là null nếu chuỗi rỗng, không phải là chuỗi rỗng
         String nameForApi = currentSearchName.isEmpty() ? null : currentSearchName;
 
         Call<PageResponse<AdminProduct>> call = adminApiService.getAdminProducts(
                 "Bearer " + token,
-                nameForApi, // String hoặc null
-                currentCategoryId, // Integer hoặc null
-                currentSortBy,
+                nameForApi,
+                currentCategoryId,
+                currentSortBy, // ĐÃ SỬA: Gửi chuỗi có direction (price,asc/price,desc)
                 page,
                 pageSize
         );
