@@ -4,13 +4,12 @@ import com.google.gson.annotations.SerializedName;
 
 public class ProductImageResponse {
     @SerializedName("id")
-    private Long id; // ID của bản ghi ảnh trên server (tùy chọn)
+    private Long id;
     @SerializedName("url")
     private String url;
     @SerializedName("altText")
     private String altText;
 
-    // Constructors
     public ProductImageResponse(Long id, String url, String altText) {
         this.id = id;
         this.url = url;
@@ -29,7 +28,6 @@ public class ProductImageResponse {
         return altText;
     }
 
-    // Setters
     public void setId(Long id) {
         this.id = id;
     }

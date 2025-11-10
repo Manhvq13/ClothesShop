@@ -60,7 +60,6 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         AdminProduct product = productList.get(position);
 
-        // --- THÔNG TIN CƠ BẢN ---
         holder.tvName.setText(product.getName());
         holder.tvSKU.setText("SKU: " + product.getSku());
 
@@ -70,7 +69,6 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
             holder.tvPrice.setTextColor(Color.RED);
         } else {
             holder.tvPrice.setText("Giá: " + currencyFormat.format(product.getPrice()));
-            // Giả định bạn có định nghĩa màu trong colors.xml (hoặc dùng màu đen)
             holder.tvPrice.setTextColor(Color.BLACK);
         }
 
@@ -95,7 +93,6 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
             holder.imgThumbnail.setImageResource(R.drawable.ic_image_placeholder);
         }
 
-        // --- THÔNG TIN TỒN KHO MỚI ---
         Integer quantity = product.getQuantityInStock() != null ? product.getQuantityInStock() : 0;
         Integer reserved = product.getReservedStock() != null ? product.getReservedStock() : 0;
         Integer available = product.getAvailableStock() != null ? product.getAvailableStock() : 0;
@@ -104,14 +101,11 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
         holder.tvReserved.setText("Dự trữ: " + reserved);
         holder.tvAvailable.setText("Có sẵn: " + available);
 
-        // Đổi màu cho số lượng có sẵn nếu quá thấp
         if (available <= 5) { // Ngưỡng Cảnh báo tồn kho thấp
             holder.tvAvailable.setTextColor(Color.RED);
         } else {
             holder.tvAvailable.setTextColor(Color.parseColor("#007BFF")); // Màu xanh dương
         }
-
-        // --- SỰ KIỆN NÚT ---
 
         // Nút Sửa
         holder.btnEdit.setOnClickListener(v -> {

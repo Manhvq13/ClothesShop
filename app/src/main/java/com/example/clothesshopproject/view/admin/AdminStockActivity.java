@@ -52,7 +52,6 @@ public class AdminStockActivity extends AppCompatActivity {
         adminApiService = ApiClient.getClient(this).create(AdminApiService.class);
         sessionManager = new SessionManager(this);
 
-        // Lấy ID sản phẩm từ Intent
         productId = getIntent().getLongExtra("PRODUCT_ID", -1L);
         if (productId == -1L) {
             Toast.makeText(this, "Lỗi: Không có ID sản phẩm.", Toast.LENGTH_SHORT).show();
