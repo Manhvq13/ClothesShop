@@ -21,7 +21,7 @@ import com.example.clothesshopproject.utils.SessionManager;
 import com.example.clothesshopproject.MainActivity;
 
 import java.math.BigDecimal;
-import java.util.Collections; // Cần import này để tạo danh sách ảnh
+import java.util.Collections;
 import java.util.List;
 
 import retrofit2.Call;
@@ -32,8 +32,7 @@ public class AdminProductActivity extends AppCompatActivity {
 
     private EditText etSku, etName, etPrice, etSalePrice;
     private EditText etDescription, etShortDescription;
-    // BỔ SUNG: EditText cho hình ảnh
-    private EditText etImageUrl, etImageAltText;
+    private EditText etImageUrl, etImageAltText; // BỔ SUNG: EditText cho hình ảnh
 
     private CheckBox cbIsActive;
     private Button btnSave;
@@ -86,7 +85,7 @@ public class AdminProductActivity extends AppCompatActivity {
         etDescription = findViewById(R.id.et_product_description);
         etShortDescription = findViewById(R.id.et_product_short_description);
 
-        // BỔ SUNG: Khởi tạo View cho hình ảnh
+        // Khởi tạo View cho hình ảnh
         etImageUrl = findViewById(R.id.et_image_url);
         etImageAltText = findViewById(R.id.et_image_alt_text);
 
@@ -131,7 +130,7 @@ public class AdminProductActivity extends AppCompatActivity {
             etShortDescription.setText(product.getShortDescription());
         }
 
-        // BỔ SUNG: Đổ dữ liệu ảnh (Chỉ lấy ảnh đầu tiên)
+        // Đổ dữ liệu ảnh (Chỉ lấy ảnh đầu tiên)
         if (product.getImages() != null && !product.getImages().isEmpty()) {
             AdminProduct.ProductImage firstImage = product.getImages().get(0);
             etImageUrl.setText(firstImage.getUrl());
@@ -154,7 +153,7 @@ public class AdminProductActivity extends AppCompatActivity {
         String description = etDescription.getText().toString().trim();
         String shortDescription = etShortDescription.getText().toString().trim();
 
-        // BỔ SUNG: Lấy dữ liệu hình ảnh
+        // Lấy dữ liệu hình ảnh
         String imageUrl = etImageUrl.getText().toString().trim();
         String imageAltText = etImageAltText.getText().toString().trim();
 
@@ -188,7 +187,7 @@ public class AdminProductActivity extends AppCompatActivity {
             productToSave.setDescription(description);
             productToSave.setShortDescription(shortDescription);
 
-            // BỔ SUNG: Gán hình ảnh (tạo danh sách chỉ chứa 1 ảnh)
+            // Gán hình ảnh (tạo danh sách chỉ chứa 1 ảnh)
             AdminProduct.ProductImage newImage = new AdminProduct.ProductImage(imageUrl, imageAltText);
             productToSave.setImages(Collections.singletonList(newImage));
 
@@ -235,8 +234,16 @@ public class AdminProductActivity extends AppCompatActivity {
                     finish();
 
                 } else {
-                    Log.e("API_SAVE", "Response Code: " + response.code());
-                    Toast.makeText(AdminProductActivity.this, "Lỗi khi lưu sản phẩm. Mã lỗi: " + response.code(), Toast.LENGTH_LONG).show();
+                    String errorBody = "";
+                    try {
+                        if (response.errorBody() != null) {
+                            errorBody = response.errorBody().string();
+                        }
+                    } catch (Exception e) {
+                        Log.e("API_SAVE", "Error parsing error body: " + e.getMessage());
+                    }
+                    Log.e("API_SAVE", "Response Code: " + response.code() + ", Body: " + errorBody);
+                    Toast.makeText(AdminProductActivity.this, "Lỗi lưu: " + response.code() + (errorBody.isEmpty() ? "" : " (" + errorBody + ")"), Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -244,8 +251,11 @@ public class AdminProductActivity extends AppCompatActivity {
             public void onFailure(Call<AdminProduct> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
                 btnSave.setEnabled(true);
+
+                // HIỂN THỊ LỖI KẾT NỐI CHI TIẾT
+                String errorMessage = "Lỗi kết nối: " + (t.getMessage() != null ? t.getMessage() : "Server không phản hồi.");
                 Log.e("API_FAILURE", "Save Failed: " + t.getMessage());
-                Toast.makeText(AdminProductActivity.this, "Lỗi kết nối mạng.", Toast.LENGTH_LONG).show();
+                Toast.makeText(AdminProductActivity.this, errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }

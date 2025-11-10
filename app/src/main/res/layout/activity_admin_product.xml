@@ -45,6 +45,22 @@
             android:inputType="textCapSentences" />
 
         <EditText
+            android:id="@+id/et_inventory_quantity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Số lượng tồn kho (Quantity)"
+            android:layout_marginBottom="20dp"
+            android:inputType="number" />
+
+        <TextView
+            android:id="@+id/tv_category_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Danh mục sản phẩm (Chưa triển khai)"
+            android:layout_marginBottom="8dp"
+            android:textStyle="bold"/>
+
+        <EditText
             android:id="@+id/et_image_url"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -28,7 +28,6 @@ public class SessionManager {
         editor.apply();
     }
 
-    // Bổ sung phương thức lưu token (để AdminProductActivity dùng)
     public void saveToken(String token) {
         editor.putString(KEY_TOKEN, token);
         editor.apply();
@@ -39,7 +38,6 @@ public class SessionManager {
         editor.apply();
     }
 
-    // BỔ SUNG CỦA BẠN: Phương thức lấy Role
     public String getUserRole() {
         return prefs.getString(KEY_USER_ROLE, null);
     }
