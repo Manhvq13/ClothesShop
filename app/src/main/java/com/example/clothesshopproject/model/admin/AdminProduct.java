@@ -13,7 +13,7 @@ public class AdminProduct {
     private String name;
     @SerializedName("description")
     private String description;
-    @SerializedName("short_description")
+    @SerializedName("shortDescription")
     private String shortDescription;
 
     @SerializedName("price")
@@ -25,10 +25,18 @@ public class AdminProduct {
     @SerializedName("images")
     private List<ProductImage> images;
 
+    @SerializedName("quantityInStock")
+    private Integer quantityInStock;
+    @SerializedName("reservedStock")
+    private Integer reservedStock;
+    @SerializedName("availableStock")
+    private Integer availableStock;
+
+
     public static class ProductImage {
         @SerializedName("url")
         private String url;
-        @SerializedName("alt_text") // Ánh xạ cột alt_text
+        @SerializedName("altText")
         private String altText;
 
         // Constructor mới
@@ -54,8 +62,15 @@ public class AdminProduct {
     public String getShortDescription() { return shortDescription; }
     public BigDecimal getPrice() { return price; }
     public BigDecimal getSalePrice() { return salePrice; }
+
+    public Boolean getIsActive() { return isActive; }
     public Boolean isActive() { return isActive; }
     public List<ProductImage> getImages() { return images; }
+
+    // THÊM: Getters cho tồn kho
+    public Integer getQuantityInStock() { return quantityInStock; }
+    public Integer getReservedStock() { return reservedStock; }
+    public Integer getAvailableStock() { return availableStock; }
 
 
     // --- Setters ---
@@ -66,11 +81,18 @@ public class AdminProduct {
     public void setShortDescription(String shortDescription) { this.shortDescription = shortDescription; }
     public void setPrice(BigDecimal price) { this.price = price; }
     public void setSalePrice(BigDecimal salePrice) { this.salePrice = salePrice; }
+
+    public void setIsActive(Boolean active) { isActive = active; }
     public void setActive(Boolean active) { isActive = active; }
 
     public void setImages(List<ProductImage> images) {
         this.images = images;
     }
+
+    // THÊM: Setters cho tồn kho
+    public void setQuantityInStock(Integer quantityInStock) { this.quantityInStock = quantityInStock; }
+    public void setReservedStock(Integer reservedStock) { this.reservedStock = reservedStock; }
+    public void setAvailableStock(Integer availableStock) { this.availableStock = availableStock; }
 
     public String getImageUrl() {
         if (images != null && !images.isEmpty()) {

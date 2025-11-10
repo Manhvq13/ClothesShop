@@ -3,6 +3,7 @@ package com.example.clothesshopproject.api.admin;
 import com.example.clothesshopproject.model.User;
 import com.example.clothesshopproject.model.admin.AdminProduct;
 import com.example.clothesshopproject.model.admin.ImageUploadResponse;
+import com.example.clothesshopproject.model.admin.PageResponse;
 import com.example.clothesshopproject.model.admin.ProductImageResponse;
 import com.example.clothesshopproject.model.admin.StockResponse;
 import com.example.clothesshopproject.model.admin.StockUpdateRequest;
@@ -24,6 +25,7 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface AdminApiService {
 
@@ -68,8 +70,20 @@ public interface AdminApiService {
     );
 
     @GET("admin/users")
-    Call<List<UserResponse>> getAllUsers();
+    Call<List<UserResponse>> getAllUsers(
+            @Query("keyword") String keyword,
+            @Query("roleName") String roleName
+    );
 
+    @GET("api/admin/products")
+    Call<PageResponse<AdminProduct>> getAdminProducts(
+            @Header("Authorization") String token,
+            @Query("name") String name,
+            @Query("categoryId") Integer categoryId,
+            @Query("sortBy") String sortBy,
+            @Query("page") int page,
+            @Query("size") int size
+    );
     @PUT("admin/users/{userId}/role")
     Call<UserResponse> updateRole(
             @Path("userId") Long userId,

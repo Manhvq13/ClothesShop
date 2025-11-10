@@ -39,14 +39,12 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
     private final List<AdminProduct> productList;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
-    // Khai báo các dịch vụ API và Session cần thiết
     private final AdminApiService adminApiService;
     private final SessionManager sessionManager;
 
     public AdminProductAdapter(Context context, List<AdminProduct> productList) {
         this.context = context;
         this.productList = productList;
-        // Khởi tạo các dịch vụ
         this.adminApiService = ApiClient.getClient(context).create(AdminApiService.class);
         this.sessionManager = new SessionManager(context);
     }
@@ -62,21 +60,22 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         AdminProduct product = productList.get(position);
 
+        // --- THÔNG TIN CƠ BẢN ---
         holder.tvName.setText(product.getName());
         holder.tvSKU.setText("SKU: " + product.getSku());
 
-        // Xử lý giá và giá khuyến mãi
+        // Xử lý giá
         if (product.getSalePrice() != null && product.getSalePrice().compareTo(product.getPrice()) < 0) {
             holder.tvPrice.setText("Giá KM: " + currencyFormat.format(product.getSalePrice()));
             holder.tvPrice.setTextColor(Color.RED);
-            // Thêm giá gốc có gạch ngang nếu có TextView tương ứng
         } else {
             holder.tvPrice.setText("Giá: " + currencyFormat.format(product.getPrice()));
-            holder.tvPrice.setTextColor(context.getResources().getColor(android.R.color.black));
+            // Giả định bạn có định nghĩa màu trong colors.xml (hoặc dùng màu đen)
+            holder.tvPrice.setTextColor(Color.BLACK);
         }
 
         // Xử lý trạng thái hoạt động
-        if (product.isActive() != null && product.isActive()) {
+        if (product.getIsActive() != null && product.getIsActive()) {
             holder.tvStatus.setText("Trạng thái: Hoạt động");
             holder.tvStatus.setTextColor(Color.parseColor("#4CAF50")); // Màu xanh
         } else {
@@ -84,25 +83,44 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
             holder.tvStatus.setTextColor(Color.GRAY);
         }
 
-        // Tải ảnh bằng Glide (Giả định bạn đã thêm thư viện Glide)
+        // Tải ảnh
         String imageUrl = product.getImageUrl();
         if (imageUrl != null) {
             Glide.with(context)
                     .load(imageUrl)
-                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .placeholder(R.drawable.ic_image_placeholder) // Đã sửa: dùng placeholder hợp lý hơn
                     .error(R.drawable.ic_launcher_foreground)
                     .into(holder.imgThumbnail);
         } else {
-            holder.imgThumbnail.setImageResource(R.drawable.ic_launcher_foreground);
+            holder.imgThumbnail.setImageResource(R.drawable.ic_image_placeholder);
         }
 
-        // Xử lý sự kiện nút Sửa
+        // --- THÔNG TIN TỒN KHO MỚI ---
+        Integer quantity = product.getQuantityInStock() != null ? product.getQuantityInStock() : 0;
+        Integer reserved = product.getReservedStock() != null ? product.getReservedStock() : 0;
+        Integer available = product.getAvailableStock() != null ? product.getAvailableStock() : 0;
+
+        holder.tvQuantity.setText("Tổng: " + quantity);
+        holder.tvReserved.setText("Dự trữ: " + reserved);
+        holder.tvAvailable.setText("Có sẵn: " + available);
+
+        // Đổi màu cho số lượng có sẵn nếu quá thấp
+        if (available <= 5) { // Ngưỡng Cảnh báo tồn kho thấp
+            holder.tvAvailable.setTextColor(Color.RED);
+        } else {
+            holder.tvAvailable.setTextColor(Color.parseColor("#007BFF")); // Màu xanh dương
+        }
+
+        // --- SỰ KIỆN NÚT ---
+
+        // Nút Sửa
         holder.btnEdit.setOnClickListener(v -> {
-            // Đã sửa: Chuyển sang màn hình chỉnh sửa sản phẩm và truyền ID
             Intent intent = new Intent(context, AdminProductActivity.class);
             intent.putExtra("PRODUCT_ID", product.getId());
             context.startActivity(intent);
         });
+
+        // Nút Quản lý Tồn kho
         holder.btnManageStock.setOnClickListener(v -> {
             if (product.getId() == null) {
                 Toast.makeText(context, "Lỗi: Không tìm thấy ID sản phẩm để quản lý tồn kho.", Toast.LENGTH_SHORT).show();
@@ -113,9 +131,8 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
             context.startActivity(intent);
         });
 
-        // Xử lý sự kiện nút Xóa
+        // Nút Xóa
         holder.btnDelete.setOnClickListener(v -> {
-            // Đã sửa: Gọi API xóa và xác nhận
             showDeleteConfirmationDialog(product, position);
         });
     }
@@ -125,14 +142,12 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
         return productList.size();
     }
 
-    // Phương thức bổ sung để cập nhật danh sách từ Activity
     public void updateList(List<AdminProduct> newList) {
         this.productList.clear();
         this.productList.addAll(newList);
         notifyDataSetChanged();
     }
 
-    // Phương thức xử lý hiển thị dialog xác nhận xóa
     private void showDeleteConfirmationDialog(AdminProduct product, int position) {
         new AlertDialog.Builder(context)
                 .setTitle("Xác nhận xóa sản phẩm")
@@ -144,7 +159,6 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
                 .show();
     }
 
-    // Phương thức gọi API xóa sản phẩm
     private void performDelete(Long productId, int position) {
         String token = "Bearer " + sessionManager.getToken();
         adminApiService.deleteProduct(token, productId).enqueue(new Callback<Void>() {
@@ -153,14 +167,12 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
                 if (response.isSuccessful()) {
                     Toast.makeText(context, "Xóa sản phẩm thành công.", Toast.LENGTH_SHORT).show();
 
-                    // Cập nhật danh sách cục bộ
                     productList.remove(position);
                     notifyItemRemoved(position);
                     notifyItemRangeChanged(position, productList.size());
 
-                    // Gọi refresh lại danh sách từ Activity để đảm bảo đồng bộ với server
                     if (context instanceof AdminProductListActivity) {
-                        ((AdminProductListActivity) context).fetchAdminProducts();
+                        ((AdminProductListActivity) context).loadProducts(0);
                     }
 
                 } else {
@@ -174,12 +186,13 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
             }
         });
     }
-
     public static class ProductViewHolder extends RecyclerView.ViewHolder {
         ImageView imgThumbnail;
         TextView tvName, tvSKU, tvPrice, tvStatus;
-        Button btnEdit, btnDelete;
-        Button btnManageStock;
+
+        TextView tvQuantity, tvReserved, tvAvailable;
+
+        Button btnEdit, btnDelete, btnManageStock;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -188,6 +201,12 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
             tvSKU = itemView.findViewById(R.id.tv_product_sku);
             tvPrice = itemView.findViewById(R.id.tv_product_price);
             tvStatus = itemView.findViewById(R.id.tv_product_status);
+
+            // Ánh xạ các trường tồn kho mới (giả định ID có trong item_admin_product.xml)
+            tvQuantity = itemView.findViewById(R.id.tv_stock_quantity);
+            tvReserved = itemView.findViewById(R.id.tv_stock_reserved);
+            tvAvailable = itemView.findViewById(R.id.tv_stock_available);
+
             btnEdit = itemView.findViewById(R.id.btn_edit);
             btnDelete = itemView.findViewById(R.id.btn_delete);
             btnManageStock = itemView.findViewById(R.id.btn_manage_stock);

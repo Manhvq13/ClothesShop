@@ -62,15 +62,12 @@ public class AdminDashboardActivity extends AppCompatActivity implements Navigat
             intent = new Intent(this, AdminProductListActivity.class);
         } else if (id == R.id.nav_user_management) {
             intent = new Intent(this, AdminUserListActivity.class);
-        } else if (id == R.id.nav_stock_management) {
-            intent = new Intent(this, AdminStockActivity.class);
-        } else if (id == R.id.nav_logout) {
+        }  else if (id == R.id.nav_logout) {
             sessionManager.clear();
             intent = new Intent(this, LoginActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         } else if (id == R.id.nav_dashboard) {
-            // Đã ở Dashboard, không làm gì
         }
 
         if (intent != null) {
@@ -81,12 +78,4 @@ public class AdminDashboardActivity extends AppCompatActivity implements Navigat
         return true;
     }
 
-    @Override
-    public void onBackPressed() {
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
 }
