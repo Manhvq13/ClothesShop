@@ -50,7 +50,6 @@ public class AdminDashboardActivity extends AppCompatActivity implements Navigat
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        // Đánh dấu mục Dashboard là được chọn ban đầu
         navigationView.setCheckedItem(R.id.nav_dashboard);
     }
 
@@ -63,6 +62,8 @@ public class AdminDashboardActivity extends AppCompatActivity implements Navigat
             intent = new Intent(this, AdminProductListActivity.class);
         } else if (id == R.id.nav_user_management) {
             intent = new Intent(this, AdminUserListActivity.class);
+        } else if (id == R.id.nav_stock_management) {
+            intent = new Intent(this, AdminStockActivity.class);
         } else if (id == R.id.nav_logout) {
             sessionManager.clear();
             intent = new Intent(this, LoginActivity.class);

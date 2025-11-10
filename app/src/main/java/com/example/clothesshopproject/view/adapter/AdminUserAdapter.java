@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.clothesshopproject.R;
 import com.example.clothesshopproject.model.admin.UserResponse;
 import com.example.clothesshopproject.utils.SessionManager;
@@ -50,6 +52,20 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         UserResponse user = userList.get(position);
+
+        // --- LOGIC HIỂN THỊ AVATAR (BỔ SUNG) ---
+        String avatarUrl = user.getAvatar();
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            Glide.with(context)
+                    .load(avatarUrl)
+                    .placeholder(R.drawable.ic_launcher_foreground) // Sử dụng placeholder
+                    .error(R.drawable.ic_launcher_foreground)       // Ảnh lỗi
+                    .into(holder.ivAvatar);
+        } else {
+            // Đặt ảnh mặc định nếu không có URL
+            holder.ivAvatar.setImageResource(R.drawable.ic_launcher_foreground);
+        }
+        // ----------------------------------------
 
         holder.tvFullName.setText("Name: " + (user.getFullName() != null ? user.getFullName() : "N/A"));
         holder.tvEmail.setText("Email: " + user.getEmail());
@@ -99,7 +115,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
             holder.btnUpdateRole.setOnClickListener(v -> showRoleUpdateDialog(user, roleName));
         }
 
-        // --- LOGIC NÚT EDIT DETAILS (ĐÃ SỬA LỖI THIẾU EMAIL VÀ KIỂM TRA ID) ---
+        // --- LOGIC NÚT EDIT DETAILS ---
         holder.btnEditDetails.setOnClickListener(v -> {
 
             if (user.getId() == null) {
@@ -110,10 +126,10 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
             Intent intent = new Intent(context, AdminEditUserActivity.class);
 
             intent.putExtra("USER_ID", user.getId());
-            // ĐÃ KHẮC PHỤC LỖI THIẾU: Truyền Email cho màn hình chỉnh sửa
             intent.putExtra("EMAIL", user.getEmail());
             intent.putExtra("FULL_NAME", user.getFullName());
             intent.putExtra("PHONE", user.getPhone());
+            intent.putExtra("AVATAR", user.getAvatar()); // Đảm bảo truyền Avatar URL
 
             context.startActivity(intent);
         });
@@ -151,6 +167,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
         final Button btnToggleStatus;
         final Button btnUpdateRole;
         final Button btnEditDetails;
+        final ImageView ivAvatar; // BỔ SUNG: Khai báo ImageView
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -162,6 +179,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
             btnToggleStatus = itemView.findViewById(R.id.btn_toggle_status);
             btnUpdateRole = itemView.findViewById(R.id.btn_update_role);
             btnEditDetails = itemView.findViewById(R.id.btn_edit_details);
+            ivAvatar = itemView.findViewById(R.id.iv_user_avatar); // BỔ SUNG: Ánh xạ View
         }
     }
 

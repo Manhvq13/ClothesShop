@@ -83,10 +83,6 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
         });
     }
 
-    // =========================================================
-    //               IMPLEMENTATION OF USER ACTIONS
-    // =========================================================
-
     @Override
     public void onRoleUpdate(UserResponse user, String newRoleName) {
         UserUpdateRoleRequest request = new UserUpdateRoleRequest(newRoleName);
@@ -96,7 +92,6 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
             public void onResponse(@NonNull Call<UserResponse> call, @NonNull Response<UserResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(AdminUserListActivity.this, "Cập nhật Role thành công!", Toast.LENGTH_SHORT).show();
-                    // Cập nhật lại list sau khi thành công
                     fetchUsers();
                 } else {
                     Toast.makeText(AdminUserListActivity.this, "Lỗi: " + (response.errorBody() != null ? response.message() : "Unknown Error"), Toast.LENGTH_SHORT).show();
@@ -119,7 +114,6 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
             public void onResponse(@NonNull Call<UserResponse> call, @NonNull Response<UserResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(AdminUserListActivity.this, "Cập nhật trạng thái thành công!", Toast.LENGTH_SHORT).show();
-                    // Cập nhật lại list sau khi thành công
                     fetchUsers();
                 } else {
                     Toast.makeText(AdminUserListActivity.this, "Lỗi: " + (response.errorBody() != null ? response.message() : "Unknown Error"), Toast.LENGTH_SHORT).show();

@@ -15,6 +15,11 @@
             android:id="@+id/nav_user_management"
             android:icon="@android:drawable/ic_menu_manage"
             android:title="Quản lý Người dùng" />
+
+        <item
+            android:id="@+id/nav_stock_management"
+            android:icon="@android:drawable/ic_menu_send"
+            android:title="Quản lý Tồn kho" />
     </group>
 
     <item android:title="System">
