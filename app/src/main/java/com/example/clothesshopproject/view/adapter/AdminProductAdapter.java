@@ -23,6 +23,7 @@ import com.example.clothesshopproject.model.admin.AdminProduct;
 import com.example.clothesshopproject.utils.SessionManager;
 import com.example.clothesshopproject.view.admin.AdminProductActivity;
 import com.example.clothesshopproject.view.admin.AdminProductListActivity;
+import com.example.clothesshopproject.view.admin.AdminStockActivity;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -102,6 +103,15 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
             intent.putExtra("PRODUCT_ID", product.getId());
             context.startActivity(intent);
         });
+        holder.btnManageStock.setOnClickListener(v -> {
+            if (product.getId() == null) {
+                Toast.makeText(context, "Lỗi: Không tìm thấy ID sản phẩm để quản lý tồn kho.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(context, AdminStockActivity.class);
+            intent.putExtra("PRODUCT_ID", product.getId());
+            context.startActivity(intent);
+        });
 
         // Xử lý sự kiện nút Xóa
         holder.btnDelete.setOnClickListener(v -> {
@@ -169,6 +179,7 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
         ImageView imgThumbnail;
         TextView tvName, tvSKU, tvPrice, tvStatus;
         Button btnEdit, btnDelete;
+        Button btnManageStock;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -179,6 +190,7 @@ public class AdminProductAdapter extends RecyclerView.Adapter<AdminProductAdapte
             tvStatus = itemView.findViewById(R.id.tv_product_status);
             btnEdit = itemView.findViewById(R.id.btn_edit);
             btnDelete = itemView.findViewById(R.id.btn_delete);
+            btnManageStock = itemView.findViewById(R.id.btn_manage_stock);
         }
     }
 }

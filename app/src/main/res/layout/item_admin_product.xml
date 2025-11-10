@@ -71,7 +71,14 @@
                 android:layout_height="wrap_content"
                 android:text="Sửa"
                 style="@style/Widget.AppCompat.Button.Small" />
-
+            <Button
+                android:id="@+id/btn_manage_stock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kho hàng"
+                style="@style/Widget.AppCompat.Button.Small"
+                android:backgroundTint="@android:color/holo_blue_light"
+                android:layout_marginBottom="4dp"/>
             <Button
                 android:id="@+id/btn_delete"
                 android:layout_width="wrap_content"

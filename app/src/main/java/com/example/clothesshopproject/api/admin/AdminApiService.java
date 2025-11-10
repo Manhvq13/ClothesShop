@@ -58,7 +58,7 @@ public interface AdminApiService {
             @Body UserUpdateStatusRequest request
     );
 
-    @GET("admin/stock/product/{productId}")
+    @GET("admin/stock/{productId}")
     Call<StockResponse> getStockByProductId(@Path("productId") Long productId);
 
     @PUT("admin/stock/product/{productId}")
@@ -85,7 +85,6 @@ public interface AdminApiService {
     @POST("admin/images/upload")
     Call<ImageUploadResponse> uploadImage(@Part MultipartBody.Part file);
 
-    // Endpoint dành riêng cho Product Image Upload (nếu cần)
     @Multipart
     @POST("admin/products/{productId}/images")
     Call<ProductImageResponse> uploadProductImage(
