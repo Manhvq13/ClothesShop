@@ -51,14 +51,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:entries="@array/category_options"
-            android:prompt="@string/select_category" /> <Spinner
-        android:id="@+id/spinner_sort_by"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginStart="8dp"
-        android:prompt="@string/sort_by" /> </LinearLayout>
+            android:prompt="@string/select_category" />
+
+        <Spinner
+            android:id="@+id/spinner_sort_by"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:prompt="@string/sort_by" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_product_list"

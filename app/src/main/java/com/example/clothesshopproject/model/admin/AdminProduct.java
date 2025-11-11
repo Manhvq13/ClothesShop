@@ -1,5 +1,6 @@
 package com.example.clothesshopproject.model.admin;
 
+import com.example.clothesshopproject.model.admin.Category;
 import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,7 +16,8 @@ public class AdminProduct {
     private String description;
     @SerializedName("shortDescription")
     private String shortDescription;
-
+    @SerializedName("categories")
+    private List<Category> categories;
     @SerializedName("price")
     private BigDecimal price;
     @SerializedName("salePrice")
@@ -39,7 +41,6 @@ public class AdminProduct {
         @SerializedName("altText")
         private String altText;
 
-        // Constructor mới
         public ProductImage(String url, String altText) {
             this.url = url;
             this.altText = altText;
@@ -54,7 +55,16 @@ public class AdminProduct {
         }
     }
 
+    public String getPrimaryCategoryName() {
+        if (categories != null && !categories.isEmpty()) {
+            return categories.get(0).getName();
+        }
+        return "N/A";
+    }
+
     // --- Getters ---
+    public List<Category> getCategories() { return categories; }
+    public void setCategories(List<Category> categories) { this.categories = categories; }
     public Long getId() { return id; }
     public String getSku() { return sku; }
     public String getName() { return name; }

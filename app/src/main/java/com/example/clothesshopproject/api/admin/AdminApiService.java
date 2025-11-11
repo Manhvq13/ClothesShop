@@ -2,6 +2,7 @@ package com.example.clothesshopproject.api.admin;
 
 import com.example.clothesshopproject.model.User;
 import com.example.clothesshopproject.model.admin.AdminProduct;
+import com.example.clothesshopproject.model.admin.Category;
 import com.example.clothesshopproject.model.admin.ImageUploadResponse;
 import com.example.clothesshopproject.model.admin.PageResponse;
 import com.example.clothesshopproject.model.admin.ProductImageResponse;
@@ -28,7 +29,8 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface AdminApiService {
-
+    @GET("api/categories/all")
+    Call<List<Category>> getAllCategories(@Header("Authorization") String token);
     @GET("api/admin/products")
     Call<List<AdminProduct>> getAllProductsForAdmin(@Header("Authorization") String token);
 

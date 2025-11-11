@@ -44,6 +44,13 @@
                 android:textSize="13sp" />
 
             <TextView
+                android:id="@+id/tv_product_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Danh mục: N/A"
+                android:textSize="13sp"
+                android:textColor="@android:color/black" />
+            <TextView
                 android:id="@+id/tv_product_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

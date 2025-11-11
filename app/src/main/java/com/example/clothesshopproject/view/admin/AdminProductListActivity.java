@@ -21,6 +21,7 @@ import com.example.clothesshopproject.api.ApiClient;
 import com.example.clothesshopproject.api.admin.AdminApiService;
 import com.example.clothesshopproject.model.admin.AdminProduct;
 import com.example.clothesshopproject.model.admin.PageResponse;
+import com.example.clothesshopproject.model.admin.Category; // THÊM: Import Category model
 import com.example.clothesshopproject.utils.SessionManager;
 import com.example.clothesshopproject.view.adapter.AdminProductAdapter;
 import com.example.clothesshopproject.MainActivity;
@@ -39,6 +40,7 @@ public class AdminProductListActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private SearchView searchView;
     private Spinner spinnerSort;
+    private Spinner spinnerCategoryFilter; // THÊM: Spinner cho Category
     private Button btnPrevPage;
     private Button btnNextPage;
 
@@ -47,11 +49,11 @@ public class AdminProductListActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private AdminProductAdapter adapter;
     private final List<AdminProduct> productList = new ArrayList<>();
+    private final List<Category> categoriesList = new ArrayList<>(); // THÊM: Danh sách Categories
 
     // --- TRẠNG THÁI HIỆN TẠI CỦA FILTER VÀ PHÂN TRANG ---
     private String currentSearchName = "";
-    private Integer currentCategoryId = null;
-    // SỬA: Giá trị mặc định là field,direction (price,asc)
+    private Integer currentCategoryId = null; // THAY ĐỔI: ID danh mục hiện tại
     private String currentSortBy = "price,asc";
     private int currentPage = 0;
     private int totalPages = 0;
@@ -79,6 +81,7 @@ public class AdminProductListActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar);
         searchView = findViewById(R.id.search_view);
         spinnerSort = findViewById(R.id.spinner_sort_by);
+        spinnerCategoryFilter = findViewById(R.id.spinner_category_filter); // THÊM: Ánh xạ Category Spinner
         btnPrevPage = findViewById(R.id.btn_prev_page);
         btnNextPage = findViewById(R.id.btn_next_page);
 
@@ -93,9 +96,10 @@ public class AdminProductListActivity extends AppCompatActivity {
         setupSearchView();
         setupSortSpinner();
         setupPaginationControls();
+        // setupCategoryFilter() được gọi sau khi fetchCategories()
 
-        // Tải dữ liệu lần đầu
-        loadProducts(currentPage);
+        // THAY ĐỔI: Chỉ tải dữ liệu sau khi lấy danh mục
+        fetchCategories();
 
         findViewById(R.id.btn_add_product).setOnClickListener(v -> {
             Intent intent = new Intent(this, AdminProductActivity.class);
@@ -103,7 +107,74 @@ public class AdminProductListActivity extends AppCompatActivity {
         });
     }
 
-    // ... (setupSearchView và setupPaginationControls giữ nguyên) ...
+    // --- CHỨC NĂNG MỚI: Tải Categories ---
+    private void fetchCategories() {
+        progressBar.setVisibility(View.VISIBLE);
+        String token = sessionManager.getToken();
+
+        if (token == null || token.isEmpty()) {
+            progressBar.setVisibility(View.GONE);
+            loadProducts(currentPage); // Vẫn tải sản phẩm nếu lỗi token
+            return;
+        }
+
+        adminApiService.getAllCategories("Bearer " + token).enqueue(new Callback<List<Category>>() {
+            @Override
+            public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful() && response.body() != null) {
+                    // Thêm tùy chọn "Tất cả" (ID = null) vào đầu danh sách
+                    categoriesList.add(new Category(null, "Tất cả danh mục"));
+                    categoriesList.addAll(response.body());
+                    populateCategorySpinner();
+                } else {
+                    Log.e("API_CATEGORY", "Lỗi tải danh mục. Code: " + response.code());
+                    loadProducts(currentPage);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Category>> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                Log.e("API_CATEGORY_FAILURE", "Call Failed: " + t.getMessage());
+                loadProducts(currentPage);
+            }
+        });
+    }
+
+    // --- CHỨC NĂNG MỚI: Populate Spinner Categories ---
+    private void populateCategorySpinner() {
+        ArrayAdapter<Category> categoryAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, categoriesList);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategoryFilter.setAdapter(categoryAdapter);
+        spinnerCategoryFilter.setSelection(0); // Chọn "Tất cả"
+
+        setupCategoryFilter(); // Thiết lập Listener sau khi có dữ liệu
+        loadProducts(currentPage); // Bắt đầu tải sản phẩm
+    }
+
+    // --- CHỨC NĂNG MỚI: Setup Category Filter Listener ---
+    private void setupCategoryFilter() {
+        spinnerCategoryFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Category selectedCategory = (Category) parent.getItemAtPosition(position);
+
+                // Lấy Category ID (null nếu là "Tất cả danh mục")
+                currentCategoryId = selectedCategory.getId();
+                currentPage = 0; // Reset trang
+                loadProducts(currentPage);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+    }
+    // --------------------------------------------------
+
 
     private void setupSortSpinner() {
         // Tùy chọn sẽ hiển thị trên UI (lấy từ strings.xml)
@@ -187,8 +258,8 @@ public class AdminProductListActivity extends AppCompatActivity {
         Call<PageResponse<AdminProduct>> call = adminApiService.getAdminProducts(
                 "Bearer " + token,
                 nameForApi,
-                currentCategoryId,
-                currentSortBy, // ĐÃ SỬA: Gửi chuỗi có direction (price,asc/price,desc)
+                currentCategoryId, // SỬA: Truyền Category ID để lọc
+                currentSortBy,
                 page,
                 pageSize
         );
@@ -235,7 +306,11 @@ public class AdminProductListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (sessionManager.isAdmin()) {
+        if (sessionManager.isAdmin() && categoriesList.isEmpty()) {
+            // Tải danh mục nếu chưa có (khi Activity vừa tạo hoặc bị destroy)
+            fetchCategories();
+        } else if (sessionManager.isAdmin()) {
+            // Tải sản phẩm nếu đã có danh mục (khi quay lại từ AdminProductActivity)
             loadProducts(currentPage);
         }
     }

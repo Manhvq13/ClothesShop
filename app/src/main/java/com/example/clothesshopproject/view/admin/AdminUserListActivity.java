@@ -16,7 +16,6 @@ import com.example.clothesshopproject.R;
 import com.example.clothesshopproject.api.admin.AdminApiClient;
 import com.example.clothesshopproject.api.admin.AdminApiService;
 import com.example.clothesshopproject.model.admin.UserResponse;
-import com.example.clothesshopproject.model.admin.UserUpdateRoleRequest;
 import com.example.clothesshopproject.model.admin.UserUpdateStatusRequest;
 import com.example.clothesshopproject.utils.SessionManager;
 import com.example.clothesshopproject.view.adapter.AdminUserAdapter;
@@ -39,7 +38,9 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
     private Button buttonClearSearch;
 
     private String currentKeyword = null;
-    private String currentRoleName = null;
+
+    private final String USER_ROLE_FILTER = "USER";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,35 +79,36 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
     @Override
     protected void onResume() {
         super.onResume();
-        fetchUsers(currentKeyword, currentRoleName);
+
+        fetchUsers(currentKeyword, USER_ROLE_FILTER);
     }
 
     private void performSearch() {
         String query = editTextSearch.getText().toString().trim();
 
         if (TextUtils.isEmpty(query)) {
-            Toast.makeText(this, "Vui lòng nhập từ khóa (Tên hoặc Role).", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Vui lòng nhập từ khóa.", Toast.LENGTH_SHORT).show();
             clearSearch();
             return;
         }
 
-        // Cập nhật tham số tìm kiếm hiện tại
         currentKeyword = query;
-        currentRoleName = query;
 
-        fetchUsers(currentKeyword, currentRoleName);
+        fetchUsers(currentKeyword, USER_ROLE_FILTER);
     }
 
     private void clearSearch() {
         editTextSearch.setText("");
         currentKeyword = null;
-        currentRoleName = null;
-        fetchUsers(null, null);
+
+        fetchUsers(null, USER_ROLE_FILTER);
     }
 
     private void fetchUsers(String keyword, String roleName) {
-        // Gọi API với tham số keyword và roleName (nếu là null, Retrofit sẽ bỏ qua)
-        adminApiService.getAllUsers(keyword, roleName).enqueue(new Callback<List<UserResponse>>() {
+
+        String finalRoleName = USER_ROLE_FILTER;
+
+        adminApiService.getAllUsers(keyword, finalRoleName).enqueue(new Callback<List<UserResponse>>() {
             @Override
             public void onResponse(@NonNull Call<List<UserResponse>> call, @NonNull Response<List<UserResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -118,7 +120,7 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
                         adapter.updateList(userList);
                     }
 
-                    String searchStatus = (keyword != null || roleName != null) ? "Tìm thấy " + userList.size() + " người dùng." : "Đã tải " + userList.size() + " người dùng.";
+                    String searchStatus = (keyword != null && !keyword.isEmpty()) ? "Tìm thấy " + userList.size() + " người dùng." : "Đã tải " + userList.size() + " người dùng.";
                     Toast.makeText(AdminUserListActivity.this, searchStatus, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(AdminUserListActivity.this, "Không thể tải danh sách người dùng. Code: " + response.code(), Toast.LENGTH_SHORT).show();
@@ -133,28 +135,6 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
         });
     }
 
-    @Override
-    public void onRoleUpdate(UserResponse user, String newRoleName) {
-        UserUpdateRoleRequest request = new UserUpdateRoleRequest(newRoleName);
-
-        adminApiService.updateRole(user.getId(), request).enqueue(new Callback<UserResponse>() {
-            @Override
-            public void onResponse(@NonNull Call<UserResponse> call, @NonNull Response<UserResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Toast.makeText(AdminUserListActivity.this, "Cập nhật Role thành công!", Toast.LENGTH_SHORT).show();
-                    // Tải lại với các tham số tìm kiếm hiện tại
-                    fetchUsers(currentKeyword, currentRoleName);
-                } else {
-                    Toast.makeText(AdminUserListActivity.this, "Lỗi: " + (response.errorBody() != null ? response.message() : "Unknown Error"), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<UserResponse> call, @NonNull Throwable t) {
-                Toast.makeText(AdminUserListActivity.this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 
     @Override
     public void onStatusUpdate(UserResponse user, boolean newStatus) {
@@ -165,7 +145,8 @@ public class AdminUserListActivity extends AppCompatActivity implements AdminUse
             public void onResponse(@NonNull Call<UserResponse> call, @NonNull Response<UserResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(AdminUserListActivity.this, "Cập nhật trạng thái thành công!", Toast.LENGTH_SHORT).show();
-                    fetchUsers(currentKeyword, currentRoleName);
+
+                    fetchUsers(currentKeyword, USER_ROLE_FILTER);
                 } else {
                     Toast.makeText(AdminUserListActivity.this, "Lỗi: " + (response.errorBody() != null ? response.message() : "Unknown Error"), Toast.LENGTH_SHORT).show();
                 }

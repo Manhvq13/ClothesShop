@@ -31,7 +31,6 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
     private final UserActionListener listener;
 
     public interface UserActionListener {
-        void onRoleUpdate(UserResponse user, String newRoleName);
         void onStatusUpdate(UserResponse user, boolean newStatus);
     }
 
@@ -53,16 +52,15 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         UserResponse user = userList.get(position);
 
-        // --- LOGIC HIỂN THỊ AVATAR (BỔ SUNG) ---
         String avatarUrl = user.getAvatar();
         if (avatarUrl != null && !avatarUrl.isEmpty()) {
             Glide.with(context)
                     .load(avatarUrl)
-                    .placeholder(R.drawable.ic_launcher_foreground) // Sử dụng placeholder
-                    .error(R.drawable.ic_launcher_foreground)       // Ảnh lỗi
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .error(R.drawable.ic_launcher_foreground)
                     .into(holder.ivAvatar);
         } else {
-            // Đặt ảnh mặc định nếu không có URL
+
             holder.ivAvatar.setImageResource(R.drawable.ic_launcher_foreground);
         }
         // ----------------------------------------
@@ -81,29 +79,19 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
         // Nút Cập nhật Trạng thái (Status)
         holder.btnToggleStatus.setText(isActive ? "Deactivate" : "Activate");
 
-        // --- KIỂM TRA TÀI KHOẢN HIỆN TẠI ---
         boolean isCurrentUser = sessionManager.getEmail() != null && sessionManager.getEmail().equals(user.getEmail());
 
         if (isCurrentUser) {
-            // Vô hiệu hóa Toggle Status
+
             holder.btnToggleStatus.setEnabled(false);
             holder.btnToggleStatus.setAlpha(0.5f);
             holder.btnToggleStatus.setText("Current User");
 
-            // Vô hiệu hóa Update Role (Theo logic BE)
-            holder.btnUpdateRole.setEnabled(false);
-            holder.btnUpdateRole.setAlpha(0.5f);
-            holder.btnUpdateRole.setText("Current Role");
-            holder.btnUpdateRole.setOnClickListener(null);
         } else {
             // Logic cho các user khác
             holder.btnToggleStatus.setEnabled(true);
             holder.btnToggleStatus.setAlpha(1.0f);
             holder.btnToggleStatus.setText(isActive ? "Deactivate" : "Activate");
-
-            holder.btnUpdateRole.setEnabled(true);
-            holder.btnUpdateRole.setAlpha(1.0f);
-            holder.btnUpdateRole.setText("Update Role");
 
             // GỌI LISTENER (Status)
             holder.btnToggleStatus.setOnClickListener(v -> {
@@ -111,8 +99,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
                     listener.onStatusUpdate(user, !isActive);
                 }
             });
-            // GỌI LISTENER (Role)
-            holder.btnUpdateRole.setOnClickListener(v -> showRoleUpdateDialog(user, roleName));
+
         }
 
         // --- LOGIC NÚT EDIT DETAILS ---
@@ -129,7 +116,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
             intent.putExtra("EMAIL", user.getEmail());
             intent.putExtra("FULL_NAME", user.getFullName());
             intent.putExtra("PHONE", user.getPhone());
-            intent.putExtra("AVATAR", user.getAvatar()); // Đảm bảo truyền Avatar URL
+            intent.putExtra("AVATAR", user.getAvatar());
 
             context.startActivity(intent);
         });
@@ -140,23 +127,7 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
         return userList.size();
     }
 
-    private void showRoleUpdateDialog(UserResponse user, String currentRole) {
-        final String[] roles = {"USER", "ADMIN"};
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Update Role for " + user.getEmail());
-        builder.setItems(roles, (dialog, which) -> {
-            String newRoleName = roles[which];
-            if (!newRoleName.equals(currentRole)) {
-                if (listener != null) {
-                    listener.onRoleUpdate(user, newRoleName);
-                }
-            } else {
-                Toast.makeText(context, "Role is already " + currentRole, Toast.LENGTH_SHORT).show();
-            }
-        });
-        builder.show();
-    }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         final TextView tvFullName;
@@ -165,9 +136,9 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
         final TextView tvRole;
         final TextView tvStatus;
         final Button btnToggleStatus;
-        final Button btnUpdateRole;
+
         final Button btnEditDetails;
-        final ImageView ivAvatar; // BỔ SUNG: Khai báo ImageView
+        final ImageView ivAvatar;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -177,9 +148,9 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
             tvRole = itemView.findViewById(R.id.tv_user_role);
             tvStatus = itemView.findViewById(R.id.tv_user_status);
             btnToggleStatus = itemView.findViewById(R.id.btn_toggle_status);
-            btnUpdateRole = itemView.findViewById(R.id.btn_update_role);
+
             btnEditDetails = itemView.findViewById(R.id.btn_edit_details);
-            ivAvatar = itemView.findViewById(R.id.iv_user_avatar); // BỔ SUNG: Ánh xạ View
+            ivAvatar = itemView.findViewById(R.id.iv_user_avatar);
         }
     }
 
