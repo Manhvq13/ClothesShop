@@ -50,6 +50,7 @@
             android:id="@+id/spinner_category_filter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:text="Lọc"
             android:layout_weight="1"
             android:prompt="@string/select_category" />
 

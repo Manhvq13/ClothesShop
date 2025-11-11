@@ -4,10 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner; // THÊM
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,12 +20,14 @@ import com.example.clothesshopproject.R;
 import com.example.clothesshopproject.api.ApiClient;
 import com.example.clothesshopproject.api.admin.AdminApiService;
 import com.example.clothesshopproject.model.admin.AdminProduct;
+import com.example.clothesshopproject.model.admin.Category; // THÊM
 import com.example.clothesshopproject.model.admin.StockResponse;
 import com.example.clothesshopproject.model.admin.StockUpdateRequest;
 import com.example.clothesshopproject.utils.SessionManager;
 import com.example.clothesshopproject.MainActivity;
 
 import java.math.BigDecimal;
+import java.util.ArrayList; // THÊM
 import java.util.Collections;
 import java.util.List;
 
@@ -37,6 +42,7 @@ public class AdminProductActivity extends AppCompatActivity {
     private EditText etImageUrl, etImageAltText;
     private EditText etQuantity;
     private CheckBox cbIsActive;
+    private Spinner spinnerCategory;
     private Button btnSave;
     private TextView tvTitle;
     private ProgressBar progressBar;
@@ -47,6 +53,8 @@ public class AdminProductActivity extends AppCompatActivity {
 
     private Integer newQuantityForStock = null;
     private Long savedProductId = null;
+
+    private final List<Category> categoriesList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +84,7 @@ public class AdminProductActivity extends AppCompatActivity {
         } else {
             tvTitle.setText("Thêm Sản phẩm Mới");
             btnSave.setText("Tạo Sản Phẩm");
+            fetchCategories();
         }
 
         btnSave.setOnClickListener(v -> validateAndSaveProduct());
@@ -86,6 +95,7 @@ public class AdminProductActivity extends AppCompatActivity {
         etSku = findViewById(R.id.et_product_sku);
         etName = findViewById(R.id.et_product_name);
         etQuantity = findViewById(R.id.et_inventory_quantity);
+        spinnerCategory = findViewById(R.id.spinner_product_category);
 
         etDescription = findViewById(R.id.et_product_description);
         etShortDescription = findViewById(R.id.et_product_short_description);
@@ -100,16 +110,71 @@ public class AdminProductActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar);
     }
 
+    // --- BỔ SUNG: Fetch Categories (cho chế độ Tạo mới) ---
+    private void fetchCategories() {
+        progressBar.setVisibility(View.VISIBLE);
+        String token = "Bearer " + sessionManager.getToken();
+
+        adminApiService.getAllCategories(token).enqueue(new Callback<List<Category>>() {
+            @Override
+            public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful() && response.body() != null) {
+                    categoriesList.clear();
+                    categoriesList.addAll(response.body());
+                    populateCategorySpinner(null);
+                } else {
+                    Toast.makeText(AdminProductActivity.this, "Lỗi tải danh mục. Code: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Category>> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(AdminProductActivity.this, "Lỗi kết nối khi tải danh mục.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // --- BỔ SUNG: Populate Categories Spinner ---
+    private void populateCategorySpinner(Integer selectedCategoryId) {
+        ArrayAdapter<Category> categoryAdapter = new ArrayAdapter<>(AdminProductActivity.this,
+                android.R.layout.simple_spinner_item, categoriesList);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+
+        // Chọn giá trị mặc định nếu có
+        if (selectedCategoryId != null) {
+            for (int i = 0; i < categoriesList.size(); i++) {
+                if (categoriesList.get(i).getId() != null && categoriesList.get(i).getId().equals(selectedCategoryId)) {
+                    spinnerCategory.setSelection(i);
+                    break;
+                }
+            }
+        }
+    }
+    // ------------------------------------------
+
     private void fetchProductDetails(Long id) {
         progressBar.setVisibility(View.VISIBLE);
         String token = "Bearer " + sessionManager.getToken();
         adminApiService.getProductById(token, id).enqueue(new Callback<AdminProduct>() {
             @Override
             public void onResponse(Call<AdminProduct> call, Response<AdminProduct> response) {
-                progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
-                    populateFields(response.body());
+                    AdminProduct product = response.body();
+
+                    // 1. Lấy Category ID mặc định (nếu có)
+                    Integer primaryCategoryId = null;
+                    if (product.getCategories() != null && !product.getCategories().isEmpty()) {
+                        primaryCategoryId = product.getCategories().get(0).getId();
+                    }
+
+                    // 2. Tải Categories và chọn giá trị mặc định, sau đó populate các fields
+                    fetchCategoriesAndPopulate(product, primaryCategoryId);
+
                 } else {
+                    progressBar.setVisibility(View.GONE);
                     Toast.makeText(AdminProductActivity.this, "Không tải được chi tiết sản phẩm. Mã lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -122,6 +187,36 @@ public class AdminProductActivity extends AppCompatActivity {
         });
     }
 
+    private void fetchCategoriesAndPopulate(AdminProduct product, Integer primaryCategoryId) {
+        String token = "Bearer " + sessionManager.getToken();
+
+        adminApiService.getAllCategories(token).enqueue(new Callback<List<Category>>() {
+            @Override
+            public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful() && response.body() != null) {
+                    categoriesList.clear();
+                    categoriesList.addAll(response.body());
+                    populateCategorySpinner(primaryCategoryId);
+
+                    populateFields(product);
+
+                } else {
+                    Toast.makeText(AdminProductActivity.this, "Lỗi tải danh mục. Code: " + response.code(), Toast.LENGTH_SHORT).show();
+                    populateFields(product);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Category>> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(AdminProductActivity.this, "Lỗi kết nối khi tải danh mục.", Toast.LENGTH_SHORT).show();
+                populateFields(product);
+            }
+        });
+    }
+
+
     private void populateFields(AdminProduct product) {
         etSku.setText(product.getSku());
         etName.setText(product.getName());
@@ -131,7 +226,6 @@ public class AdminProductActivity extends AppCompatActivity {
             etQuantity.setText(String.valueOf(product.getQuantityInStock()));
         }
 
-        // Đổ dữ liệu Description
         if (product.getDescription() != null) {
             etDescription.setText(product.getDescription());
         }
@@ -143,7 +237,6 @@ public class AdminProductActivity extends AppCompatActivity {
         if (product.getImages() != null && !product.getImages().isEmpty()) {
             AdminProduct.ProductImage firstImage = product.getImages().get(0);
             etImageUrl.setText(firstImage.getUrl());
-            // Kiểm tra và đổ dữ liệu Alt Text
             if (firstImage.getAltText() != null) {
                 etImageAltText.setText(firstImage.getAltText());
             }
@@ -170,6 +263,14 @@ public class AdminProductActivity extends AppCompatActivity {
         String priceStr = etPrice.getText().toString().trim();
         String salePriceStr = etSalePrice.getText().toString().trim();
         boolean isActive = cbIsActive.isChecked();
+
+        Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
+
+        if (selectedCategory == null) {
+            Toast.makeText(this, "Vui lòng chọn Danh mục sản phẩm.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
 
         if (sku.isEmpty() || name.isEmpty() || priceStr.isEmpty() || description.isEmpty() || imageUrl.isEmpty() || quantityStr.isEmpty()) {
             Toast.makeText(this, "Vui lòng điền đủ SKU, Tên, Giá, Mô tả, URL Ảnh và Số lượng tồn kho.", Toast.LENGTH_SHORT).show();
@@ -204,6 +305,8 @@ public class AdminProductActivity extends AppCompatActivity {
             productToSave.setName(name);
             productToSave.setDescription(description);
             productToSave.setShortDescription(shortDescription);
+
+            productToSave.setCategories(Collections.singletonList(selectedCategory));
 
             AdminProduct.ProductImage newImage = new AdminProduct.ProductImage(imageUrl, imageAltText);
             productToSave.setImages(Collections.singletonList(newImage));
@@ -287,7 +390,6 @@ public class AdminProductActivity extends AppCompatActivity {
         });
     }
 
-    // --- Thêm phương thức mới để gọi API cập nhật Stock ---
     private void performStockUpdate(Long id, Integer quantity, String productAction) {
         String token = "Bearer " + sessionManager.getToken();
         StockUpdateRequest request = new StockUpdateRequest();

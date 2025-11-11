@@ -53,13 +53,18 @@
             android:inputType="number" />
 
         <TextView
-            android:id="@+id/tv_category_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Danh mục sản phẩm (Chưa triển khai)"
+            android:text="Chọn Danh mục sản phẩm"
             android:layout_marginBottom="8dp"
             android:textStyle="bold"/>
 
+        <Spinner
+            android:id="@+id/spinner_product_category"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:layout_marginBottom="20dp" />
         <EditText
             android:id="@+id/et_image_url"
             android:layout_width="match_parent"
