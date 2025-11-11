@@ -83,6 +83,14 @@ public class AdminEditUserActivity extends AppCompatActivity {
         }
     }
 
+    private boolean isValidPhoneNumber(String phone) {
+        if (phone.isEmpty()) {
+            return true;
+        }
+
+        return phone.matches("^\\d{10,11}$");
+    }
+
     private void saveUserDetails() {
         if (userId == null || userId <= 0) {
             Toast.makeText(this, "Error: User ID is missing or invalid.", Toast.LENGTH_SHORT).show();
@@ -92,10 +100,19 @@ public class AdminEditUserActivity extends AppCompatActivity {
         String newFullName = etFullName.getText().toString().trim();
         String newPhone = etPhoneNumber.getText().toString().trim();
         String newAvatar = etAvatarUrl.getText().toString().trim();
+
         if (newFullName.isEmpty()) {
             Toast.makeText(this, "Full Name is required.", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // --- BỔ SUNG VALIDATION CHO SỐ ĐIỆN THOẠI ---
+        if (!isValidPhoneNumber(newPhone)) {
+            Toast.makeText(this, "Số điện thoại không hợp lệ. Vui lòng nhập 10 hoặc 11 chữ số.", Toast.LENGTH_LONG).show();
+            etPhoneNumber.setError("Số điện thoại không hợp lệ (10-11 chữ số)");
+            return;
+        }
+        // -----------------------------------------------------
 
         UserUpdateRequest request = new UserUpdateRequest(newFullName, newPhone, newAvatar);
 

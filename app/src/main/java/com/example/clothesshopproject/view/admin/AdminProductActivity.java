@@ -292,6 +292,13 @@ public class AdminProductActivity extends AppCompatActivity {
             BigDecimal price = new BigDecimal(priceStr);
             BigDecimal salePrice = salePriceStr.isEmpty() ? null : new BigDecimal(salePriceStr);
 
+            // Bổ sung Validation cho Giá: Giá khuyến mãi không được lớn hơn Giá gốc
+            if (salePrice != null && salePrice.compareTo(price) > 0) {
+                Toast.makeText(this, "Giá khuyến mãi không được lớn hơn Giá gốc.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            // Kết thúc Validation cho Giá
+
             Integer quantity = Integer.parseInt(quantityStr);
 
             if (quantity < 0) {
