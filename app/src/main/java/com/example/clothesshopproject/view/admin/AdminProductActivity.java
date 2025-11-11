@@ -4,13 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Spinner; // THÊM
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,14 +19,14 @@ import com.example.clothesshopproject.R;
 import com.example.clothesshopproject.api.ApiClient;
 import com.example.clothesshopproject.api.admin.AdminApiService;
 import com.example.clothesshopproject.model.admin.AdminProduct;
-import com.example.clothesshopproject.model.admin.Category; // THÊM
+import com.example.clothesshopproject.model.admin.Category;
 import com.example.clothesshopproject.model.admin.StockResponse;
 import com.example.clothesshopproject.model.admin.StockUpdateRequest;
 import com.example.clothesshopproject.utils.SessionManager;
 import com.example.clothesshopproject.MainActivity;
 
 import java.math.BigDecimal;
-import java.util.ArrayList; // THÊM
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -80,10 +79,12 @@ public class AdminProductActivity extends AppCompatActivity {
         if (productId != -1L) {
             tvTitle.setText("Chỉnh sửa Sản phẩm (ID: " + productId + ")");
             btnSave.setText("Lưu Thay Đổi");
+            // Trong chế độ EDIT, fetch chi tiết và sau đó fetch categories
             fetchProductDetails(productId);
         } else {
             tvTitle.setText("Thêm Sản phẩm Mới");
             btnSave.setText("Tạo Sản Phẩm");
+            // Trong chế độ CREATE, chỉ fetch categories
             fetchCategories();
         }
 
@@ -110,7 +111,7 @@ public class AdminProductActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar);
     }
 
-    // --- BỔ SUNG: Fetch Categories (cho chế độ Tạo mới) ---
+    // --- TẢI DANH MỤC ---
     private void fetchCategories() {
         progressBar.setVisibility(View.VISIBLE);
         String token = "Bearer " + sessionManager.getToken();
@@ -136,7 +137,7 @@ public class AdminProductActivity extends AppCompatActivity {
         });
     }
 
-    // --- BỔ SUNG: Populate Categories Spinner ---
+    // --- ĐỔ DỮ LIỆU VÀO SPINNER ---
     private void populateCategorySpinner(Integer selectedCategoryId) {
         ArrayAdapter<Category> categoryAdapter = new ArrayAdapter<>(AdminProductActivity.this,
                 android.R.layout.simple_spinner_item, categoriesList);
@@ -153,8 +154,8 @@ public class AdminProductActivity extends AppCompatActivity {
             }
         }
     }
-    // ------------------------------------------
 
+    // --- TẢI CHI TIẾT SẢN PHẨM ---
     private void fetchProductDetails(Long id) {
         progressBar.setVisibility(View.VISIBLE);
         String token = "Bearer " + sessionManager.getToken();
@@ -164,7 +165,7 @@ public class AdminProductActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     AdminProduct product = response.body();
 
-                    // 1. Lấy Category ID mặc định (nếu có)
+                    // 1. Lấy Category ID mặc định (chỉ lấy cái đầu tiên vì hiện tại chỉ hỗ trợ 1)
                     Integer primaryCategoryId = null;
                     if (product.getCategories() != null && !product.getCategories().isEmpty()) {
                         primaryCategoryId = product.getCategories().get(0).getId();
@@ -187,6 +188,7 @@ public class AdminProductActivity extends AppCompatActivity {
         });
     }
 
+    // --- GỘP LOGIC TẢI CATEGORY VÀ ĐỔ DỮ LIỆU ---
     private void fetchCategoriesAndPopulate(AdminProduct product, Integer primaryCategoryId) {
         String token = "Bearer " + sessionManager.getToken();
 
@@ -197,8 +199,10 @@ public class AdminProductActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     categoriesList.clear();
                     categoriesList.addAll(response.body());
+                    // Đổ dữ liệu và chọn giá trị mặc định
                     populateCategorySpinner(primaryCategoryId);
 
+                    // Đổ dữ liệu sản phẩm sau khi category đã sẵn sàng
                     populateFields(product);
 
                 } else {
@@ -249,6 +253,7 @@ public class AdminProductActivity extends AppCompatActivity {
         cbIsActive.setChecked(product.isActive() != null ? product.isActive() : false);
     }
 
+    // --- VALIDATE VÀ LƯU SẢN PHẨM ---
     private void validateAndSaveProduct() {
         String sku = etSku.getText().toString().trim();
         String name = etName.getText().toString().trim();
@@ -264,10 +269,11 @@ public class AdminProductActivity extends AppCompatActivity {
         String salePriceStr = etSalePrice.getText().toString().trim();
         boolean isActive = cbIsActive.isChecked();
 
+        // LẤY DANH MỤC ĐÃ CHỌN
         Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
 
-        if (selectedCategory == null) {
-            Toast.makeText(this, "Vui lòng chọn Danh mục sản phẩm.", Toast.LENGTH_SHORT).show();
+        if (selectedCategory == null || selectedCategory.getId() == null) {
+            Toast.makeText(this, "Vui lòng chọn Danh mục sản phẩm hợp lệ.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -306,8 +312,10 @@ public class AdminProductActivity extends AppCompatActivity {
             productToSave.setDescription(description);
             productToSave.setShortDescription(shortDescription);
 
+            // GÁN CATEGORY: Truyền danh sách Category (chỉ một phần tử)
             productToSave.setCategories(Collections.singletonList(selectedCategory));
 
+            // GÁN IMAGES
             AdminProduct.ProductImage newImage = new AdminProduct.ProductImage(imageUrl, imageAltText);
             productToSave.setImages(Collections.singletonList(newImage));
 

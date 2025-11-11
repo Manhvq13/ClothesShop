@@ -1,6 +1,5 @@
 package com.example.clothesshopproject.model.admin;
 
-import com.example.clothesshopproject.model.admin.Category;
 import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,6 +39,10 @@ public class AdminProduct {
         private String url;
         @SerializedName("altText")
         private String altText;
+
+        // THÊM: Constructor mặc định
+        public ProductImage() {
+        }
 
         public ProductImage(String url, String altText) {
             this.url = url;
