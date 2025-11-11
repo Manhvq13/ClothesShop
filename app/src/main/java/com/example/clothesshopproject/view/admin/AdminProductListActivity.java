@@ -123,6 +123,10 @@ public class AdminProductListActivity extends AppCompatActivity {
             public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
                 progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
+
+                    // FIX: Xóa danh sách category cũ để tránh trùng lặp
+                    categoriesList.clear();
+
                     // Thêm tùy chọn "Tất cả" (ID = null) vào đầu danh sách
                     categoriesList.add(new Category(null, "Tất cả danh mục"));
                     categoriesList.addAll(response.body());
@@ -148,20 +152,18 @@ public class AdminProductListActivity extends AppCompatActivity {
                 android.R.layout.simple_spinner_item, categoriesList);
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategoryFilter.setAdapter(categoryAdapter);
-        spinnerCategoryFilter.setSelection(0); // Chọn "Tất cả"
+        spinnerCategoryFilter.setSelection(0);
 
-        setupCategoryFilter(); // Thiết lập Listener sau khi có dữ liệu
-        loadProducts(currentPage); // Bắt đầu tải sản phẩm
+        setupCategoryFilter();
+        loadProducts(currentPage);
     }
 
-    // --- CHỨC NĂNG MỚI: Setup Category Filter Listener ---
     private void setupCategoryFilter() {
         spinnerCategoryFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Category selectedCategory = (Category) parent.getItemAtPosition(position);
 
-                // Lấy Category ID (null nếu là "Tất cả danh mục")
                 currentCategoryId = selectedCategory.getId();
                 currentPage = 0; // Reset trang
                 loadProducts(currentPage);
@@ -169,7 +171,6 @@ public class AdminProductListActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
             }
         });
     }
